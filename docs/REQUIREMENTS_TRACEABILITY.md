@@ -121,3 +121,9 @@
 | R-3.1-TRANSITIONS | 3.1 | DONE | Approve, suspend, activate, archive transitions |
 | R-3.1-SUSPENSION | 3.1 | DONE | Suspended branch write protection |
 | R-3.1-TESTS | 3.1 | DONE | 172 backend tests / 824 assertions pass on MariaDB |
+
+| R-3.2-MEMBERSHIP | 3.2 | DONE | Multi-branch membership |
+| R-3.2-CONTEXT | 3.2 | DONE | Deterministic context switching |
+| R-3.2-STALE | 3.2 | DONE | Stale membership rejection |
+| R-3.2-HOST | 3.2 | DONE | Unauthorized host rejection |
+| R-3.2-TESTS | 3.2 | DONE | 177 backend tests / 831 assertions pass on MariaDB |

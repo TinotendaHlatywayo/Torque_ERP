@@ -138,3 +138,9 @@
 - **Suspension**: suspended branches reject writes but allow authorized historical reads.
 - **Archive**: archived branches are soft-deleted; branches with history are never hard-deleted.
 - **Uniqueness**: branch slug and host are unique.
+
+## 3.2 Membership and context switching
+- **Deterministic selection**: when no branch is explicitly requested, the first active membership ordered by creation time is used.
+- **Server verification**: every branch-scoped request re-checks membership, active status, host and suspension state.
+- **Context switching**: clients may send `X-Branch-Id`; the server validates it against membership and never trusts it for authorization.
+- **Leak prevention**: branch-scoped queries, route binding, permissions and audit logs are used; caches must include branch in their keys.

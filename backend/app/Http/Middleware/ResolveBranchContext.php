@@ -43,6 +43,10 @@ class ResolveBranchContext
                 abort(403, 'You do not have access to this branch.');
             }
 
+            if ($branch->host && $request->getHost() !== $branch->host) {
+                abort(403, 'You do not have access to this branch host.');
+            }
+
             $request->attributes->set('branch_id', $branch->id);
             $request->attributes->set('branch_user', $branchUser);
             $request->attributes->set('branch', $branch);

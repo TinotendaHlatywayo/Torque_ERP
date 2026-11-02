@@ -165,3 +165,9 @@
   - Added platform branch registration/approval/suspension/activation/archive API
   - Added suspended-branch write protection
   - Added 3 lifecycle tests
+
+## [Unreleased]
+### Added
+- Stage 3.2: Membership and context switching
+  - Added host validation to branch context resolution
+  - Added tenancy context tests
