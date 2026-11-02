@@ -8,6 +8,7 @@ import StockPage from "./pages/app/StockPage"
 import PosPage from "./pages/app/PosPage"
 import ReceiptPage from "./pages/app/ReceiptPage"
 import SalesHistoryPage from "./pages/app/SalesHistoryPage"
+import SyncCenterPage from "./pages/app/SyncCenterPage"
 import UsersPage from "./pages/app/UsersPage"
 import PlatformLandingPage from "./pages/platform/LandingPage"
 import { ProtectedRoute } from "./components/layout/ProtectedRoute"
@@ -48,6 +49,10 @@ export const router = createBrowserRouter([
   {
     path: "/app/sales",
     element: <ProtectedRoute><SalesHistoryPage /></ProtectedRoute>,
+  },
+  {
+    path: "/app/sync",
+    element: <ProtectedRoute><SyncCenterPage /></ProtectedRoute>,
   },
   {
     path: "/app/users",

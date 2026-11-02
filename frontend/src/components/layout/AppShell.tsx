@@ -21,6 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <a href="/app/stock" className="block px-2 py-1 rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Stock</a>
             <a href="/app/pos" className="block px-2 py-1 rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">POS</a>
             <a href="/app/sales" className="block px-2 py-1 rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Sales history</a>
+            <a href="/app/sync" className="block px-2 py-1 rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Sync center</a>
             <a href="/app/users" className="block px-2 py-1 rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Users and roles</a>
           </nav>
         </aside>
