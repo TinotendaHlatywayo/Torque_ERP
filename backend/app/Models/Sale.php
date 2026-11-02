@@ -27,6 +27,7 @@ class Sale extends Model
         'tax_minor',
         'total_minor',
         'paid_minor',
+        'due_date',
         'idempotency_key',
         'request_hash',
         'actor_id',
@@ -38,6 +39,7 @@ class Sale extends Model
         'tax_minor' => 'integer',
         'total_minor' => 'integer',
         'paid_minor' => 'integer',
+        'due_date' => 'date',
         'voided_at' => 'datetime',
     ];
 

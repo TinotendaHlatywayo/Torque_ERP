@@ -107,3 +107,11 @@
 - **Ageing**: buckets are current, 1-30, 31-60, 61-90 and 90+ days based on due date.
 - **Stock purchase vs COGS**: a stock purchase creates inventory value and a supplier liability; it is not COGS until the stock is sold. Paying a bill reduces cash/liability and is not an expense.
 - **Attachments**: attachment path metadata is supported; safe file upload storage is documented as follow-up.
+
+## 2.4 Receivables and collections
+- **Invoice**: a sale is the invoice; `total_minor` is invoiced amount, `paid_minor` is cash collected, and their difference is outstanding.
+- **Credit sales**: checkout may be created with partial or no payment; payment status becomes `unpaid` or `partial`.
+- **Collections**: payments recorded after sale create a `Payment`, update sale totals/status, and post an `adjustment_in` money movement.
+- **Deposits/partial payments**: supported through collection amounts up to the outstanding balance.
+- **Write-offs/credit notes**: deferred; not implemented in this stage.
+- **Double-counting prevention**: collections post money movements only when cash is received; invoices without payments do not create money movements.

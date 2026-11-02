@@ -94,3 +94,9 @@
 | R-2.3-PAYMENTS | 2.3 | DONE | Bill payment allocation |
 | R-2.3-COGS | 2.3 | DONE | Stock purchase vs COGS documented |
 | R-2.3-TESTS | 2.3 | DONE | 148 backend tests / 693 assertions pass on MariaDB |
+
+| R-2.4-CREDIT | 2.4 | DONE | Credit sale/invoice support |
+| R-2.4-COLLECTIONS | 2.4 | DONE | Receipt allocation and collections |
+| R-2.4-AGEING | 2.4 | DONE | Receivable ageing |
+| R-2.4-DOUBLECOUNT | 2.4 | DONE | Prevent double-counting sales in Money In |
+| R-2.4-TESTS | 2.4 | DONE | 152 backend tests / 719 assertions pass on MariaDB |

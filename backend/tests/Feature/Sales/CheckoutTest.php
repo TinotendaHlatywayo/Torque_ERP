@@ -169,7 +169,7 @@ class CheckoutTest extends TestCase
                     ],
                 ],
                 'payments' => [
-                    ['method' => 'cash', 'amount_minor' => 999, 'currency_code' => 'USD'],
+                    ['method' => 'cash', 'amount_minor' => 1001, 'currency_code' => 'USD'],
                 ],
             ])
             ->assertUnprocessable()

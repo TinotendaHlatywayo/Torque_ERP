@@ -84,6 +84,12 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
                 ->middleware('branch.permission:branch.sales.create');
             Route::get('/sales/{sale}', [CheckoutController::class, 'show'])
                 ->middleware('branch.permission:branch.sales.view');
+            Route::post('/sales/{sale}/payments', [SaleController::class, 'collectPayment'])
+                ->middleware('branch.permission:branch.sales.create');
+            Route::get('/receivables', [SaleController::class, 'receivables'])
+                ->middleware('branch.permission:branch.sales.view');
+            Route::get('/receivables/ageing', [SaleController::class, 'receivablesAgeing'])
+                ->middleware('branch.permission:branch.sales.view');
             Route::get('/sales', [SaleController::class, 'index'])
                 ->middleware('branch.permission:branch.sales.view');
             Route::post('/sales/{sale}/void', [SaleController::class, 'void'])

@@ -99,6 +99,12 @@
 - Stage 2.2: Payment accounts and cash movements
 ### Added
 - Stage 2.3: Expenses and bills to pay
+### Added
+- Stage 2.4: Receivables and collections
+  - Added credit sale support and collection payments
+  - Added receivables list and ageing endpoints
+  - Added idempotent collection handling
+  - Added 4 receivable tests
   - Added `expenses`, `supplier_bills` and `supplier_bill_payments` tables
   - Added expense incurred/paid lifecycle and payment
   - Added supplier bill payment allocation and ageing

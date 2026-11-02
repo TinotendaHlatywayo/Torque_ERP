@@ -25,12 +25,13 @@ class CheckoutRequest extends FormRequest
             'lines.*.discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'lines.*.floor_price_minor' => ['nullable', 'integer', 'min:0'],
             'lines.*.tax_rate_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'payments' => ['required', 'array', 'min:1'],
+            'payments' => ['sometimes', 'array'],
             'payments.*.method' => ['required', 'string', 'in:cash,card,bank_transfer,mobile_money,other'],
             'payments.*.amount_minor' => ['required', 'integer', 'min:1'],
             'payments.*.currency_code' => ['required', 'string', 'size:3'],
             'payments.*.reference' => ['nullable', 'string', 'max:120'],
             'discount_override_reason' => ['nullable', 'string', 'max:500'],
+            'due_date' => ['nullable', 'date'],
         ];
     }
 

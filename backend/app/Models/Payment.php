@@ -20,6 +20,8 @@ class Payment extends Model
         'currency_code',
         'reference',
         'status',
+        'idempotency_key',
+        'request_hash',
         'actor_id',
     ];
 

@@ -78,12 +78,6 @@ final class CheckoutService
                     ]);
                 }
 
-                if ($payments === []) {
-                    throw ValidationException::withMessages([
-                        'payments' => 'At least one payment is required.',
-                    ]);
-                }
-
                 $priceLines = [];
                 $products = [];
 
@@ -145,9 +139,9 @@ final class CheckoutService
                     $paidMinor += $payment['amount_minor'];
                 }
 
-                if ($paidMinor !== $cart->totalMinor) {
+                if ($paidMinor > $cart->totalMinor) {
                     throw ValidationException::withMessages([
-                        'payments' => 'Payment amounts must equal the sale total.',
+                        'payments' => 'Payment amounts cannot exceed the sale total.',
                     ]);
                 }
 
@@ -179,6 +173,7 @@ final class CheckoutService
                     'tax_minor' => $cart->taxMinor,
                     'total_minor' => $cart->totalMinor,
                     'paid_minor' => $paidMinor,
+                    'due_date' => $payload['due_date'] ?? null,
                     'idempotency_key' => $idempotencyKey,
                     'request_hash' => $requestHash,
                     'actor_id' => $actor->id,

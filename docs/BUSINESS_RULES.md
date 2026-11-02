@@ -46,6 +46,7 @@ These rules are canonical for all TorqueERP modules. Where a module does not yet
 
 ## Sales and corrections
 - Sale state and payment state are distinct. Posted sales are not deleted; use authorized voids, reversals, refunds or credit notes.
+- Receivables distinguish invoiced amount, cash collected and outstanding balance. Credit sales do not create money movements until collected.
 - Return authorization, quantity, restock decision and refund/credit event are linked but distinct.
 - Checkout posts sale, payment and stock movement in one transaction. Duplicate submissions are idempotent.
 - Split payments are allowed when amounts and currency match the sale total.
