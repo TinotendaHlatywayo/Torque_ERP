@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\FinanceMetricsController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\MeController;
+use App\Http\Controllers\Api\SyncController;
 use App\Http\Controllers\Api\MoneyMovementController;
 use App\Http\Controllers\Api\PaymentAccountController;
 use App\Http\Controllers\Api\PlatformAccessController;
@@ -157,6 +158,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
                 ->middleware('branch.permission:branch.finance.view');
             Route::get('/finance/metrics', [FinanceMetricsController::class, 'metrics'])
                 ->middleware('branch.permission:branch.finance.view');
+            Route::post('/sync/upload', [SyncController::class, 'upload'])
+                ->middleware('branch.permission:branch.sales.create');
+            Route::get('/sync/status', [SyncController::class, 'status'])
+                ->middleware('branch.permission:branch.sales.view');
             Route::get('/settings', [SettingController::class, 'branchIndex'])
                 ->middleware('branch.permission:branch.settings.view');
             Route::patch('/settings', [SettingController::class, 'branchUpdate'])
