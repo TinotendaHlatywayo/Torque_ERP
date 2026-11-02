@@ -31,8 +31,35 @@ class AuditLogger
             'entity_id' => $entity instanceof Model ? (string) $entity->getKey() : ($entityId ?? ''),
             'ip_address' => $request?->ip(),
             'user_agent' => $request?->userAgent(),
-            'before' => $before,
-            'after' => $after,
+            'before' => $this->redact($before),
+            'after' => $this->redact($after),
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $payload
+     * @return array<string, mixed>|null
+     */
+    private function redact(?array $payload): ?array
+    {
+        if ($payload === null) {
+            return null;
+        }
+
+        $sensitive = ['password', 'password_confirmation', 'token', 'secret', 'api_key', 'card_number', 'cvv', 'access_token', 'refresh_token'];
+
+        foreach ($payload as $key => $value) {
+            if (is_array($value)) {
+                $payload[$key] = $this->redact($value);
+
+                continue;
+            }
+
+            if (in_array((string) $key, $sensitive, true)) {
+                $payload[$key] = '[redacted]';
+            }
+        }
+
+        return $payload;
     }
 }

@@ -185,3 +185,11 @@
   - Added platform branch comparison endpoint
   - Added private scoped expiring CSV export
   - Added 3 platform report tests
+
+## [Unreleased]
+### Added
+- Stage 3.5: Audit and platform acceptance
+  - Added audit redaction and immutability
+  - Added login/logout audit entries
+  - Added audit retention configuration
+  - Added security regression tests

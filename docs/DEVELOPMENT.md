@@ -128,6 +128,10 @@ In production `SEED_ADMIN_PASSWORD` is required. Local development defaults to `
 - `POST /api/platforms/{platform}/reports/export`
 - `GET /api/platform/report-exports/{export}/download`
 
+## Audit (Stage 3.5)
+- Audit logs are immutable and redact sensitive values.
+- Retention defaults to 365 days via `AUDIT_RETENTION_DAYS`.
+
 ## Tests
 - Backend: `cd backend && php artisan test` (requires PHP with `pdo_sqlite`)
 - If the local PHP 8.4 CLI lacks `pdo_sqlite`, run the suite with a temporary extracted extension:

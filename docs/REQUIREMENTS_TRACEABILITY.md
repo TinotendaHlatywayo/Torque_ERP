@@ -137,3 +137,9 @@
 | R-3.4-EXPORTS | 3.4 | DONE | Private scoped expiring exports |
 | R-3.4-AUTH | 3.4 | DONE | Platform-only authorization |
 | R-3.4-TESTS | 3.4 | DONE | 184 backend tests / 849 assertions pass on MariaDB |
+
+| R-3.5-AUDIT | 3.5 | DONE | Audit coverage and redaction |
+| R-3.5-IMMUTABILITY | 3.5 | DONE | Audit log immutability |
+| R-3.5-RETENTION | 3.5 | DONE | Audit retention policy |
+| R-3.5-SECURITY | 3.5 | DONE | Cross-branch security regression |
+| R-3.5-TESTS | 3.5 | DONE | 189 backend tests / 859 assertions pass on MariaDB |

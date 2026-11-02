@@ -155,3 +155,10 @@
 - **Platform-only comparison**: branch comparison metrics are available only through platform permissions.
 - **Authorization**: queries and exports enforce platform permissions; branch users cannot access platform reports.
 - **Exports**: export files are stored privately, scoped to the platform, expire after 24 hours and are audited.
+
+## 3.5 Audit and platform acceptance
+- **Audit coverage**: login/logout, permission changes, price overrides, stock corrections, sale void/return, payments, branch lifecycle and exports are audited.
+- **Redaction**: sensitive values such as passwords, tokens, card numbers and CVVs are redacted in audit payloads.
+- **Retention**: audit retention defaults to 365 days via `AUDIT_RETENTION_DAYS`.
+- **Immutability**: audit logs cannot be updated or deleted by application code.
+- **Platform-admin boundaries**: platform admins manage platforms/branches and cross-branch reports but do not receive branch data without an active branch membership.
