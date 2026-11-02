@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\PlatformAccessController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductConversionController;
 use App\Http\Controllers\Api\ProductUnitController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\StockLevelController;
 use App\Http\Controllers\Api\StockMovementController;
@@ -153,6 +154,12 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
                 ->middleware('branch.permission:branch.finance.view');
             Route::get('/finance/metrics', [FinanceMetricsController::class, 'metrics'])
                 ->middleware('branch.permission:branch.finance.view');
+            Route::get('/reports/sales', [ReportController::class, 'sales'])
+                ->middleware('branch.permission:branch.reports.view');
+            Route::get('/reports/stock', [ReportController::class, 'stock'])
+                ->middleware('branch.permission:branch.reports.view');
+            Route::get('/reports/receivables', [ReportController::class, 'receivables'])
+                ->middleware('branch.permission:branch.reports.view');
             Route::get('/document-templates', [DocumentTemplateController::class, 'index'])
                 ->middleware('branch.permission:branch.finance.view');
             Route::post('/document-templates', [DocumentTemplateController::class, 'store'])

@@ -29,6 +29,7 @@ Phase 1
 - 2.4 Receivables and collections: DONE (MariaDB tested; SQLite blocked by missing pdo_sqlite driver)
 - 2.5 Finance metrics and FX history: DONE (MariaDB tested; SQLite blocked by missing pdo_sqlite driver)
 - 2.6 Documents and templates: DONE (MariaDB tested; SQLite blocked by missing pdo_sqlite driver)
+- 2.7 Reports and dashboard v1: DONE (MariaDB tested; SQLite blocked by missing pdo_sqlite driver)
 
 ## Quick start (development)
 See `docs/DEVELOPMENT.md` for setup, run, test, lint/format/type commands.
