@@ -103,6 +103,13 @@
 - Stage 2.4: Receivables and collections
 ### Added
 - Stage 2.5: Finance metrics and FX history
+### Added
+- Stage 2.6: Documents and templates
+  - Added `document_templates` table with versioning
+  - Added template validation, preview and missing-placeholder checks
+  - Added public document verification endpoint
+  - Added receipt QR code and print CSS
+  - Added 6 document template tests
   - Added `fx_rates` table and historical conversion service
   - Added finance metrics endpoint with documented formulas
   - Added configurable default tax rate

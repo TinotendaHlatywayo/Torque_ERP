@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\BranchUserController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\DocumentTemplateController;
+use App\Http\Controllers\Api\DocumentVerificationController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\FinanceMetricsController;
 use App\Http\Controllers\Api\HealthController;
@@ -23,6 +25,7 @@ use App\Http\Controllers\Api\UnitController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', [HealthController::class, 'index']);
+Route::get('/verify/{documentType}/{documentId}', [DocumentVerificationController::class, 'verify']);
 
 Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/user', MeController::class);
@@ -149,6 +152,12 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             Route::get('/bills-to-pay/ageing', [SupplierBillController::class, 'ageing'])
                 ->middleware('branch.permission:branch.finance.view');
             Route::get('/finance/metrics', [FinanceMetricsController::class, 'metrics'])
+                ->middleware('branch.permission:branch.finance.view');
+            Route::get('/document-templates', [DocumentTemplateController::class, 'index'])
+                ->middleware('branch.permission:branch.finance.view');
+            Route::post('/document-templates', [DocumentTemplateController::class, 'store'])
+                ->middleware('branch.permission:branch.finance.manage');
+            Route::post('/document-templates/{documentTemplate}/preview', [DocumentTemplateController::class, 'preview'])
                 ->middleware('branch.permission:branch.finance.view');
             Route::post('/finance/fx/convert', [FinanceMetricsController::class, 'convert'])
                 ->middleware('branch.permission:branch.finance.view');

@@ -1,4 +1,6 @@
+import { useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
+import QRCode from 'qrcode'
 import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/button'
@@ -14,6 +16,7 @@ export default function ReceiptPage() {
   const meQuery = useMe()
   const branch = meQuery.data?.branches[0]
   const branchId = branch?.id
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const saleQuery = useQuery({
     queryKey: ['sale', branchId, saleId],
@@ -23,6 +26,13 @@ export default function ReceiptPage() {
     },
     enabled: Boolean(branchId && saleId),
   })
+
+  useEffect(() => {
+    const url = saleQuery.data ? `${window.location.origin}/api/verify/receipt/${saleQuery.data.id}` : ''
+    if (canvasRef.current && url) {
+      void QRCode.toCanvas(canvasRef.current, url, { width: 128 })
+    }
+  }, [saleQuery.data])
 
   if (!meQuery.data) {
     return (
@@ -64,6 +74,7 @@ export default function ReceiptPage() {
   }
 
   const sale = saleQuery.data
+  const verificationUrl = sale ? `${window.location.origin}/api/verify/receipt/${sale.id}` : ''
 
   return (
     <AppShell>
@@ -128,6 +139,14 @@ export default function ReceiptPage() {
                 ))}
               </ul>
             </div>
+
+            {verificationUrl && (
+              <div className="space-y-2">
+                <h2 className="font-medium">Verification</h2>
+                <canvas ref={canvasRef} aria-label="Receipt verification QR code" />
+                <p className="break-all text-xs text-muted-foreground">{verificationUrl}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

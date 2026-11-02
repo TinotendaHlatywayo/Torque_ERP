@@ -120,3 +120,9 @@
 - **Metrics formulas**: Money In = recorded sale payments + non-collection manual money movements in; Money Out = non-transfer money movements out; Profit basis = invoiced revenue - expenses incurred (COGS deferred until cost layers exist); Money Owed to Us = outstanding receivables; Bills to Pay = outstanding supplier bills; Inventory value = stock on hand at selling price (provisional until cost layers exist); Cash position = net money movements.
 - **FX history**: `fx_rates` preserves source, effective time, entered-by and rounding mode. Conversions use the latest effective rate at the requested time and never rewrite historical conversions.
 - **Tax**: default tax rate is configurable via `TAX_DEFAULT_RATE_PERCENT`; per-line tax remains explicit.
+
+## 2.6 Documents and templates
+- **Interpretation**: a document type is a workflow output (receipt, invoice, supplier bill); a template is a versioned layout for one document type. Multiple named templates may exist per type, with one active version per name.
+- **Preview/versioning/validation**: templates are versioned on save, validated against an allow-list of placeholders, and previewed with sample or supplied data.
+- **Print CSS**: receipt views use print CSS to hide navigation and controls.
+- **QR codes**: QR codes point to `/api/verify/{documentType}/{documentId}`, which returns real validity and document data.

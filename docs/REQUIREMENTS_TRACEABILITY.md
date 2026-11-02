@@ -105,3 +105,10 @@
 | R-2.5-FX | 2.5 | DONE | FX history and conversions |
 | R-2.5-TAX | 2.5 | DONE | Configurable tax rate |
 | R-2.5-TESTS | 2.5 | DONE | 155 backend tests / 737 assertions pass on MariaDB |
+
+| R-2.6-TEMPLATES | 2.6 | DONE | Template registry and versioning |
+| R-2.6-VALIDATION | 2.6 | DONE | Placeholder validation and missing checks |
+| R-2.6-PREVIEW | 2.6 | DONE | Template preview |
+| R-2.6-QR | 2.6 | DONE | QR verification target |
+| R-2.6-PRINT | 2.6 | DONE | Print CSS |
+| R-2.6-TESTS | 2.6 | DONE | 161 backend tests / 754 assertions pass on MariaDB |

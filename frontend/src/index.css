@@ -58,3 +58,14 @@
 .skeleton {
   @apply animate-pulse bg-muted rounded;
 }
+
+@media print {
+  header, aside, nav, button {
+    display: none !important;
+  }
+
+  main {
+    margin: 0;
+    padding: 0;
+  }
+}

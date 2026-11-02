@@ -72,6 +72,11 @@ class Branch extends Model
         return $this->hasMany(MoneyMovement::class);
     }
 
+    public function documentTemplates(): HasMany
+    {
+        return $this->hasMany(DocumentTemplate::class);
+    }
+
     public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);

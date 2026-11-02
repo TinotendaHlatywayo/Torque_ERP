@@ -103,6 +103,11 @@ In production `SEED_ADMIN_PASSWORD` is required. Local development defaults to `
 - `GET /api/branches/{branch}/finance/metrics`
 - `POST /api/branches/{branch}/finance/fx/convert`
 
+## Documents and templates (Stage 2.6)
+- `GET/POST /api/branches/{branch}/document-templates`
+- `POST /api/branches/{branch}/document-templates/{template}/preview`
+- `GET /api/verify/{documentType}/{documentId}`
+
 ## Tests
 - Backend: `cd backend && php artisan test` (requires PHP with `pdo_sqlite`)
 - If the local PHP 8.4 CLI lacks `pdo_sqlite`, run the suite with a temporary extracted extension:
