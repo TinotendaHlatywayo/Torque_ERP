@@ -143,3 +143,7 @@
 | R-3.5-RETENTION | 3.5 | DONE | Audit retention policy |
 | R-3.5-SECURITY | 3.5 | DONE | Cross-branch security regression |
 | R-3.5-TESTS | 3.5 | DONE | 189 backend tests / 859 assertions pass on MariaDB |
+
+| R-4.6-RECOVERY | 4.6 | DONE | Interruption and recovery acceptance |
+| R-4.6-EXACTLYONCE | 4.6 | DONE | Exactly-once business effect |
+| R-4.6-TESTS | 4.6 | DONE | 194 backend tests / 875 assertions pass on MariaDB |

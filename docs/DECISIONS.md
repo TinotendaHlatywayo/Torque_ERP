@@ -162,3 +162,9 @@
 - **Retention**: audit retention defaults to 365 days via `AUDIT_RETENTION_DAYS`.
 - **Immutability**: audit logs cannot be updated or deleted by application code.
 - **Platform-admin boundaries**: platform admins manage platforms/branches and cross-branch reports but do not receive branch data without an active branch membership.
+
+## 4.6 Interruption/recovery acceptance
+- **Exactly-once**: duplicate sync retries return the prior result without repeating stock or payment effects.
+- **Invalid payload**: rejected with validation errors.
+- **Expired session**: rejected with 401.
+- **Unavailable offline**: branch registration, user management, settings, reports, exports, supplier bills, FX, templates and platform administration.

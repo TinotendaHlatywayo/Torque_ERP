@@ -5,10 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\SyncOperation;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class SyncController extends Controller
 {
@@ -41,6 +39,7 @@ class SyncController extends Controller
                     'error' => $existing->error_message,
                     'replayed' => true,
                 ];
+
                 continue;
             }
 

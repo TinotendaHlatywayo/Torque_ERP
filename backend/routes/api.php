@@ -11,7 +11,6 @@ use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\FinanceMetricsController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\MeController;
-use App\Http\Controllers\Api\SyncController;
 use App\Http\Controllers\Api\MoneyMovementController;
 use App\Http\Controllers\Api\PaymentAccountController;
 use App\Http\Controllers\Api\PlatformAccessController;
@@ -26,6 +25,7 @@ use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\StockLevelController;
 use App\Http\Controllers\Api\StockMovementController;
 use App\Http\Controllers\Api\SupplierBillController;
+use App\Http\Controllers\Api\SyncController;
 use App\Http\Controllers\Api\UnitController;
 use Illuminate\Support\Facades\Route;
 

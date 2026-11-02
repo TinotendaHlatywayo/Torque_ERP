@@ -4,6 +4,7 @@ namespace Tests\Feature\Sync;
 
 use App\Models\Branch;
 use App\Models\Platform;
+use App\Models\SyncOperation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -69,7 +70,7 @@ class SyncTest extends TestCase
             $second->json('data.results.0.result'),
         );
 
-        $this->assertSame(1, \App\Models\SyncOperation::where('branch_id', $this->branchA->id)->count());
+        $this->assertSame(1, SyncOperation::where('branch_id', $this->branchA->id)->count());
     }
 
     public function test_sync_requires_authentication_and_membership(): void

@@ -193,3 +193,9 @@
   - Added login/logout audit entries
   - Added audit retention configuration
   - Added security regression tests
+
+## [Unreleased]
+### Added
+- Stage 4.6: Interruption/recovery acceptance
+  - Added `SyncRecoveryTest`
+  - Documented offline availability limits
