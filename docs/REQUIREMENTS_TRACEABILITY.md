@@ -132,3 +132,8 @@
 | R-3.3-SCOPES | 3.3 | DONE | Setting scopes and precedence |
 | R-3.3-AUDIT | 3.3 | DONE | Sensitive setting audit |
 | R-3.3-TESTS | 3.3 | DONE | 181 backend tests / 843 assertions pass on MariaDB |
+
+| R-3.4-CROSSBRANCH | 3.4 | DONE | Cross-branch reports |
+| R-3.4-EXPORTS | 3.4 | DONE | Private scoped expiring exports |
+| R-3.4-AUTH | 3.4 | DONE | Platform-only authorization |
+| R-3.4-TESTS | 3.4 | DONE | 184 backend tests / 849 assertions pass on MariaDB |

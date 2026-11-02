@@ -150,3 +150,8 @@
 - **Precedence**: branch settings override platform settings; platform settings override defaults. No silent inheritance or copying occurs.
 - **Validation**: only allow-listed setting keys are accepted for each scope.
 - **Audit**: every setting change is audited.
+
+## 3.4 Cross-branch reports and exports
+- **Platform-only comparison**: branch comparison metrics are available only through platform permissions.
+- **Authorization**: queries and exports enforce platform permissions; branch users cannot access platform reports.
+- **Exports**: export files are stored privately, scoped to the platform, expire after 24 hours and are audited.

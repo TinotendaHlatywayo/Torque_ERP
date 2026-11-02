@@ -34,6 +34,7 @@ Phase 1
 - 3.1 Branch registration and lifecycle: DONE (MariaDB tested; SQLite blocked by missing pdo_sqlite driver)
 - 3.2 Membership and context switching: DONE (MariaDB tested; SQLite blocked by missing pdo_sqlite driver)
 - 3.3 Platform/branch settings: DONE (MariaDB tested; SQLite blocked by missing pdo_sqlite driver)
+- 3.4 Cross-branch reports and exports: DONE (MariaDB tested; SQLite blocked by missing pdo_sqlite driver)
 
 ## Quick start (development)
 See `docs/DEVELOPMENT.md` for setup, run, test, lint/format/type commands.

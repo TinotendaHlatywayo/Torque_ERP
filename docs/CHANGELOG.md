@@ -178,3 +178,10 @@
   - Added `settings` table with scoped keys
   - Added setting validation, precedence and audit
   - Added 4 settings tests
+
+## [Unreleased]
+### Added
+- Stage 3.4: Cross-branch reports and exports
+  - Added platform branch comparison endpoint
+  - Added private scoped expiring CSV export
+  - Added 3 platform report tests

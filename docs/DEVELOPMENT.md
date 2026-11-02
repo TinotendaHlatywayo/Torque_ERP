@@ -123,6 +123,11 @@ In production `SEED_ADMIN_PASSWORD` is required. Local development defaults to `
 - `GET/PATCH /api/branches/{branch}/settings`
 - `GET/PATCH /api/platforms/{platform}/settings`
 
+## Cross-branch reports (Stage 3.4)
+- `GET /api/platforms/{platform}/reports/branches`
+- `POST /api/platforms/{platform}/reports/export`
+- `GET /api/platform/report-exports/{export}/download`
+
 ## Tests
 - Backend: `cd backend && php artisan test` (requires PHP with `pdo_sqlite`)
 - If the local PHP 8.4 CLI lacks `pdo_sqlite`, run the suite with a temporary extracted extension:

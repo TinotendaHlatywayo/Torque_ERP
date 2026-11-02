@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\MoneyMovementController;
 use App\Http\Controllers\Api\PaymentAccountController;
 use App\Http\Controllers\Api\PlatformAccessController;
 use App\Http\Controllers\Api\PlatformBranchController;
+use App\Http\Controllers\Api\PlatformReportController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductConversionController;
 use App\Http\Controllers\Api\ProductUnitController;
@@ -182,6 +183,12 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     Route::get('/platform/access', PlatformAccessController::class)
         ->middleware('platform.permission:platform.users.view');
+    Route::get('/platforms/{platform}/reports/branches', [PlatformReportController::class, 'branchComparison'])
+        ->middleware('platform.permission:platform.reports.view');
+    Route::post('/platforms/{platform}/reports/export', [PlatformReportController::class, 'export'])
+        ->middleware('platform.permission:platform.reports.view');
+    Route::get('/platform/report-exports/{reportExport}/download', [PlatformReportController::class, 'download'])
+        ->middleware('platform.permission:platform.reports.view');
     Route::get('/platforms/{platform}/settings', [SettingController::class, 'platformIndex'])
         ->middleware('platform.permission:platform.settings.manage');
     Route::patch('/platforms/{platform}/settings', [SettingController::class, 'platformUpdate'])

@@ -52,6 +52,8 @@ final class Permissions
 
     public const PLATFORM_AUDIT_VIEW = 'platform.audit.view';
 
+    public const PLATFORM_REPORTS_VIEW = 'platform.reports.view';
+
     /**
      * @return array<int, string>
      */
@@ -91,6 +93,7 @@ final class Permissions
             self::PLATFORM_USERS_MANAGE,
             self::PLATFORM_SETTINGS_MANAGE,
             self::PLATFORM_AUDIT_VIEW,
+            self::PLATFORM_REPORTS_VIEW,
         ];
     }
 
@@ -133,6 +136,7 @@ final class Permissions
             self::PLATFORM_USERS_MANAGE => 'Manage platform users',
             self::PLATFORM_SETTINGS_MANAGE => 'Manage platform settings',
             self::PLATFORM_AUDIT_VIEW => 'View platform audit log',
+            self::PLATFORM_REPORTS_VIEW => 'View platform reports',
         ];
     }
 
