@@ -112,3 +112,7 @@
 | R-2.6-QR | 2.6 | DONE | QR verification target |
 | R-2.6-PRINT | 2.6 | DONE | Print CSS |
 | R-2.6-TESTS | 2.6 | DONE | 161 backend tests / 754 assertions pass on MariaDB |
+
+| R-2.8-RECONCILIATION | 2.8 | DONE | Financial reconciliation acceptance |
+| R-2.8-DOUBLECOUNT | 2.8 | DONE | No double-counting of receiving, purchases, expenses, COGS |
+| R-2.8-TESTS | 2.8 | DONE | 169 backend tests / 804 assertions pass on MariaDB |

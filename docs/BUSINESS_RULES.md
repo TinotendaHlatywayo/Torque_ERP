@@ -83,3 +83,8 @@ These rules are canonical for all TorqueERP modules. Where a module does not yet
 
 ## Demo data
 - Demo data must be fictional, deterministic, relationally coherent, repeatable, branch-safe and blocked from accidental production execution.
+
+## Financial reconciliation
+- Receiving, purchases, expenses and COGS remain separate metrics.
+- Voided sales are excluded from revenue and receivables.
+- Credit sales do not create money movements until collected.

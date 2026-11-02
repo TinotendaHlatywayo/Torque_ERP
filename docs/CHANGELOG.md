@@ -148,3 +148,12 @@
   - Added `branch.customers.view` and `branch.customers.manage` permissions
   - Added duplicate warnings for similar names, phone numbers or emails without automatic merging
   - Added 7 customer tests covering creation, duplicates, update/archive, search, tenant isolation and permissions
+
+## [Unreleased]
+### Added
+- Stage 2.7: Reports and dashboard v1
+  - Added report endpoints and dashboard metrics
+  - Added metric dictionary
+- Stage 2.8: Financial reconciliation acceptance
+  - Added `FinancialReconciliationTest`
+  - Verified no double-counting of receiving, purchases, expenses and COGS

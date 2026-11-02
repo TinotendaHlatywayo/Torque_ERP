@@ -126,3 +126,8 @@
 - **Preview/versioning/validation**: templates are versioned on save, validated against an allow-list of placeholders, and previewed with sample or supplied data.
 - **Print CSS**: receipt views use print CSS to hide navigation and controls.
 - **QR codes**: QR codes point to `/api/verify/{documentType}/{documentId}`, which returns real validity and document data.
+
+## 2.8 Financial reconciliation acceptance
+- **Reconciliation**: sale/payment, supplier bill/payment, expense incurred/paid, credit/collection, returns, reversals, FX and report totals are covered by `FinancialReconciliationTest`.
+- **No double-counting**: receiving and purchases create inventory/liability, not COGS; expenses are separate; money movements are created only for actual cash movement; transfers are paired.
+- **Voided sales**: excluded from receivables and revenue metrics.
