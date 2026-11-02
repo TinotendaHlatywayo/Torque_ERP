@@ -115,3 +115,8 @@
 - **Deposits/partial payments**: supported through collection amounts up to the outstanding balance.
 - **Write-offs/credit notes**: deferred; not implemented in this stage.
 - **Double-counting prevention**: collections post money movements only when cash is received; invoices without payments do not create money movements.
+
+## 2.5 Finance metrics and FX history
+- **Metrics formulas**: Money In = recorded sale payments + non-collection manual money movements in; Money Out = non-transfer money movements out; Profit basis = invoiced revenue - expenses incurred (COGS deferred until cost layers exist); Money Owed to Us = outstanding receivables; Bills to Pay = outstanding supplier bills; Inventory value = stock on hand at selling price (provisional until cost layers exist); Cash position = net money movements.
+- **FX history**: `fx_rates` preserves source, effective time, entered-by and rounding mode. Conversions use the latest effective rate at the requested time and never rewrite historical conversions.
+- **Tax**: default tax rate is configurable via `TAX_DEFAULT_RATE_PERCENT`; per-line tax remains explicit.

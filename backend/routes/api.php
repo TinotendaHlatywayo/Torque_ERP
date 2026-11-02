@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\ExpenseController;
+use App\Http\Controllers\Api\FinanceMetricsController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\MoneyMovementController;
@@ -146,6 +147,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
             Route::post('/supplier-bills/{supplierBill}/pay', [SupplierBillController::class, 'pay'])
                 ->middleware('branch.permission:branch.finance.manage');
             Route::get('/bills-to-pay/ageing', [SupplierBillController::class, 'ageing'])
+                ->middleware('branch.permission:branch.finance.view');
+            Route::get('/finance/metrics', [FinanceMetricsController::class, 'metrics'])
+                ->middleware('branch.permission:branch.finance.view');
+            Route::post('/finance/fx/convert', [FinanceMetricsController::class, 'convert'])
                 ->middleware('branch.permission:branch.finance.view');
             Route::post('/products/{product}/stock/movements', [StockMovementController::class, 'store'])
                 ->middleware('branch.permission:branch.inventory.manage');

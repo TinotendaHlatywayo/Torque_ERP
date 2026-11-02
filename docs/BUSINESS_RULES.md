@@ -57,6 +57,7 @@ These rules are canonical for all TorqueERP modules. Where a module does not yet
 
 ## Currency and time
 - Every money movement records amount, currency, time, method, account and reference where relevant.
+- FX conversions preserve rate, source, effective time, entered-by and rounding; historic conversions are never rewritten.
 - Payment accounts are branch-owned and single-currency. Transfers are paired movements, not income or expense.
 - Money movements are immutable; corrections use reversals.
 - Store amounts in integer minor units with ISO 4217 currency codes. FX conversions preserve rate, source, effective time and rounding basis.

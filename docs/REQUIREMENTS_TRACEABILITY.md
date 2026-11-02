@@ -100,3 +100,8 @@
 | R-2.4-AGEING | 2.4 | DONE | Receivable ageing |
 | R-2.4-DOUBLECOUNT | 2.4 | DONE | Prevent double-counting sales in Money In |
 | R-2.4-TESTS | 2.4 | DONE | 152 backend tests / 719 assertions pass on MariaDB |
+
+| R-2.5-METRICS | 2.5 | DONE | Finance metrics formulas |
+| R-2.5-FX | 2.5 | DONE | FX history and conversions |
+| R-2.5-TAX | 2.5 | DONE | Configurable tax rate |
+| R-2.5-TESTS | 2.5 | DONE | 155 backend tests / 737 assertions pass on MariaDB |

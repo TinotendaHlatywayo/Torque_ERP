@@ -101,6 +101,12 @@
 - Stage 2.3: Expenses and bills to pay
 ### Added
 - Stage 2.4: Receivables and collections
+### Added
+- Stage 2.5: Finance metrics and FX history
+  - Added `fx_rates` table and historical conversion service
+  - Added finance metrics endpoint with documented formulas
+  - Added configurable default tax rate
+  - Added 3 finance tests
   - Added credit sale support and collection payments
   - Added receivables list and ageing endpoints
   - Added idempotent collection handling
