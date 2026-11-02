@@ -119,6 +119,10 @@ In production `SEED_ADMIN_PASSWORD` is required. Local development defaults to `
 - Branch context is resolved server-side from membership.
 - `X-Branch-Id` may select a branch but never grants access.
 
+## Settings (Stage 3.3)
+- `GET/PATCH /api/branches/{branch}/settings`
+- `GET/PATCH /api/platforms/{platform}/settings`
+
 ## Tests
 - Backend: `cd backend && php artisan test` (requires PHP with `pdo_sqlite`)
 - If the local PHP 8.4 CLI lacks `pdo_sqlite`, run the suite with a temporary extracted extension:

@@ -127,3 +127,8 @@
 | R-3.2-STALE | 3.2 | DONE | Stale membership rejection |
 | R-3.2-HOST | 3.2 | DONE | Unauthorized host rejection |
 | R-3.2-TESTS | 3.2 | DONE | 177 backend tests / 831 assertions pass on MariaDB |
+
+| R-3.3-SETTINGS | 3.3 | DONE | Platform/branch settings |
+| R-3.3-SCOPES | 3.3 | DONE | Setting scopes and precedence |
+| R-3.3-AUDIT | 3.3 | DONE | Sensitive setting audit |
+| R-3.3-TESTS | 3.3 | DONE | 181 backend tests / 843 assertions pass on MariaDB |

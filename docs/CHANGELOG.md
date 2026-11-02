@@ -171,3 +171,10 @@
 - Stage 3.2: Membership and context switching
   - Added host validation to branch context resolution
   - Added tenancy context tests
+
+## [Unreleased]
+### Added
+- Stage 3.3: Platform/branch settings
+  - Added `settings` table with scoped keys
+  - Added setting validation, precedence and audit
+  - Added 4 settings tests

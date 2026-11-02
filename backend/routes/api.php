@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\ProductConversionController;
 use App\Http\Controllers\Api\ProductUnitController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SaleController;
+use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\StockLevelController;
 use App\Http\Controllers\Api\StockMovementController;
 use App\Http\Controllers\Api\SupplierBillController;
@@ -155,6 +156,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
                 ->middleware('branch.permission:branch.finance.view');
             Route::get('/finance/metrics', [FinanceMetricsController::class, 'metrics'])
                 ->middleware('branch.permission:branch.finance.view');
+            Route::get('/settings', [SettingController::class, 'branchIndex'])
+                ->middleware('branch.permission:branch.settings.view');
+            Route::patch('/settings', [SettingController::class, 'branchUpdate'])
+                ->middleware('branch.permission:branch.settings.manage');
             Route::get('/reports/sales', [ReportController::class, 'sales'])
                 ->middleware('branch.permission:branch.reports.view');
             Route::get('/reports/stock', [ReportController::class, 'stock'])
@@ -177,6 +182,10 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     Route::get('/platform/access', PlatformAccessController::class)
         ->middleware('platform.permission:platform.users.view');
+    Route::get('/platforms/{platform}/settings', [SettingController::class, 'platformIndex'])
+        ->middleware('platform.permission:platform.settings.manage');
+    Route::patch('/platforms/{platform}/settings', [SettingController::class, 'platformUpdate'])
+        ->middleware('platform.permission:platform.settings.manage');
 
     Route::get('/platform/branches', [PlatformBranchController::class, 'index'])
         ->middleware('platform.permission:platform.branches.view');

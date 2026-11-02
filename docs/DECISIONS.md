@@ -144,3 +144,9 @@
 - **Server verification**: every branch-scoped request re-checks membership, active status, host and suspension state.
 - **Context switching**: clients may send `X-Branch-Id`; the server validates it against membership and never trusts it for authorization.
 - **Leak prevention**: branch-scoped queries, route binding, permissions and audit logs are used; caches must include branch in their keys.
+
+## 3.3 Platform/branch settings
+- **Scopes**: platform and branch settings are stored separately; user, device and document settings are deferred unless a built feature needs them.
+- **Precedence**: branch settings override platform settings; platform settings override defaults. No silent inheritance or copying occurs.
+- **Validation**: only allow-listed setting keys are accepted for each scope.
+- **Audit**: every setting change is audited.
