@@ -108,6 +108,13 @@ In production `SEED_ADMIN_PASSWORD` is required. Local development defaults to `
 - `POST /api/branches/{branch}/document-templates/{template}/preview`
 - `GET /api/verify/{documentType}/{documentId}`
 
+## Branch lifecycle (Stage 3.1)
+- `GET/POST /api/platform/branches`
+- `PATCH /api/platform/branches/{branch}/approve`
+- `PATCH /api/platform/branches/{branch}/suspend`
+- `PATCH /api/platform/branches/{branch}/activate`
+- `PATCH /api/platform/branches/{branch}/archive`
+
 ## Tests
 - Backend: `cd backend && php artisan test` (requires PHP with `pdo_sqlite`)
 - If the local PHP 8.4 CLI lacks `pdo_sqlite`, run the suite with a temporary extracted extension:

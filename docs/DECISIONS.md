@@ -131,3 +131,10 @@
 - **Reconciliation**: sale/payment, supplier bill/payment, expense incurred/paid, credit/collection, returns, reversals, FX and report totals are covered by `FinancialReconciliationTest`.
 - **No double-counting**: receiving and purchases create inventory/liability, not COGS; expenses are separate; money movements are created only for actual cash movement; transfers are paired.
 - **Voided sales**: excluded from receivables and revenue metrics.
+
+## 3.1 Branch registration and lifecycle
+- **Lifecycle states**: pending, active, suspended, archived.
+- **Registration**: platform owners register branches; approval activates them.
+- **Suspension**: suspended branches reject writes but allow authorized historical reads.
+- **Archive**: archived branches are soft-deleted; branches with history are never hard-deleted.
+- **Uniqueness**: branch slug and host are unique.

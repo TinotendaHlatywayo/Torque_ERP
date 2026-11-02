@@ -47,6 +47,11 @@ class ResolveBranchContext
             $request->attributes->set('branch_user', $branchUser);
             $request->attributes->set('branch', $branch);
 
+            if (in_array($branch->status, [Branch::STATUS_SUSPENDED, Branch::STATUS_ARCHIVED], true)
+                && ! in_array($request->method(), ['GET', 'HEAD', 'OPTIONS'], true)) {
+                abort(403, 'This branch is suspended and cannot accept writes.');
+            }
+
             return $next($request);
         }
 

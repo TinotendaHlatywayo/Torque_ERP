@@ -116,3 +116,8 @@
 | R-2.8-RECONCILIATION | 2.8 | DONE | Financial reconciliation acceptance |
 | R-2.8-DOUBLECOUNT | 2.8 | DONE | No double-counting of receiving, purchases, expenses, COGS |
 | R-2.8-TESTS | 2.8 | DONE | 169 backend tests / 804 assertions pass on MariaDB |
+
+| R-3.1-LIFECYCLE | 3.1 | DONE | Branch registration and lifecycle |
+| R-3.1-TRANSITIONS | 3.1 | DONE | Approve, suspend, activate, archive transitions |
+| R-3.1-SUSPENSION | 3.1 | DONE | Suspended branch write protection |
+| R-3.1-TESTS | 3.1 | DONE | 172 backend tests / 824 assertions pass on MariaDB |

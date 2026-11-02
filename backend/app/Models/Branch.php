@@ -11,10 +11,21 @@ class Branch extends Model
 {
     use HasUlids, SoftDeletes;
 
-    protected $fillable = ['platform_id', 'name', 'code', 'slug', 'timezone', 'currency_code', 'host', 'settings'];
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_SUSPENDED = 'suspended';
+
+    public const STATUS_ARCHIVED = 'archived';
+
+    protected $fillable = ['platform_id', 'name', 'code', 'slug', 'status', 'timezone', 'currency_code', 'host', 'settings', 'approved_at', 'approved_by', 'suspended_at', 'suspended_by', 'suspension_reason', 'archived_at'];
 
     protected $casts = [
         'settings' => 'array',
+        'approved_at' => 'datetime',
+        'suspended_at' => 'datetime',
+        'archived_at' => 'datetime',
     ];
 
     public function memberships(): HasMany

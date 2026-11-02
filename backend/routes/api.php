@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\MoneyMovementController;
 use App\Http\Controllers\Api\PaymentAccountController;
 use App\Http\Controllers\Api\PlatformAccessController;
+use App\Http\Controllers\Api\PlatformBranchController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductConversionController;
 use App\Http\Controllers\Api\ProductUnitController;
@@ -176,4 +177,17 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     Route::get('/platform/access', PlatformAccessController::class)
         ->middleware('platform.permission:platform.users.view');
+
+    Route::get('/platform/branches', [PlatformBranchController::class, 'index'])
+        ->middleware('platform.permission:platform.branches.view');
+    Route::post('/platform/branches', [PlatformBranchController::class, 'store'])
+        ->middleware('platform.permission:platform.branches.manage');
+    Route::patch('/platform/branches/{branch}/approve', [PlatformBranchController::class, 'approve'])
+        ->middleware('platform.permission:platform.branches.manage');
+    Route::patch('/platform/branches/{branch}/suspend', [PlatformBranchController::class, 'suspend'])
+        ->middleware('platform.permission:platform.branches.manage');
+    Route::patch('/platform/branches/{branch}/activate', [PlatformBranchController::class, 'activate'])
+        ->middleware('platform.permission:platform.branches.manage');
+    Route::patch('/platform/branches/{branch}/archive', [PlatformBranchController::class, 'archive'])
+        ->middleware('platform.permission:platform.branches.manage');
 });

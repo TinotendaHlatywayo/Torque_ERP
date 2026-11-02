@@ -157,3 +157,11 @@
 - Stage 2.8: Financial reconciliation acceptance
   - Added `FinancialReconciliationTest`
   - Verified no double-counting of receiving, purchases, expenses and COGS
+
+## [Unreleased]
+### Added
+- Stage 3.1: Branch registration and lifecycle
+  - Added branch lifecycle fields and status transitions
+  - Added platform branch registration/approval/suspension/activation/archive API
+  - Added suspended-branch write protection
+  - Added 3 lifecycle tests
