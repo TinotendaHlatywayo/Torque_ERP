@@ -70,11 +70,9 @@ class ExpenseBillTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'paid');
 
-        $this->assertDatabaseHas('expenses', [
-            'id' => $expense->id,
-            'status' => 'paid',
-            'paid_date' => '2026-10-05',
-        ]);
+        $expense->refresh();
+        $this->assertSame('paid', $expense->status);
+        $this->assertSame('2026-10-05', $expense->paid_date->toDateString());
 
         $this->assertDatabaseHas('money_movements', [
             'branch_id' => $this->branchA->id,

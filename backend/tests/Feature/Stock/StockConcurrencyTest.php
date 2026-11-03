@@ -18,7 +18,7 @@ class StockConcurrencyTest extends TestCase
 {
     use DatabaseMigrations;
 
-    private string $resultDir;
+    private string $resultDir = '';
 
     protected function setUp(): void
     {
