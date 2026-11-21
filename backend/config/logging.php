@@ -90,6 +90,14 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'observability' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/observability.log'),
+            'level' => env('OBSERVABILITY_LOG_LEVEL', 'info'),
+            'max_files' => (int) env('OBSERVABILITY_LOG_MAX_FILES', 14),
+            'replace_placeholders' => true,
+        ],
+
         'papertrail' => [
             'driver' => 'monolog',
             'level' => env('LOG_LEVEL', 'debug'),

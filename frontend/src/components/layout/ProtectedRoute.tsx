@@ -1,9 +1,16 @@
 import { ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { LoadingState } from '@/components/feedback/StateComponents'
 import { useMe } from '@/hooks/useMe'
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
+type ProtectedRouteProps = {
+  children: ReactNode
+  platformOnly?: boolean
+  platformPermission?: string
+}
+
+export function ProtectedRoute({ children, platformOnly = false, platformPermission }: ProtectedRouteProps) {
+  const location = useLocation()
   const { data, isLoading, isError } = useMe()
 
   if (isLoading) {
@@ -11,7 +18,16 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   }
 
   if (isError || !data) {
-    return <Navigate to="/login" replace />
+    const redirect = encodeURIComponent(`${location.pathname}${location.search}`)
+    return <Navigate to={`/login?redirect=${redirect}`} replace />
+  }
+
+  if (platformOnly && !data.user.is_platform_admin && data.platform_permissions.length === 0) {
+    return <Navigate to="/app" replace />
+  }
+
+  if (platformPermission && !data.user.is_platform_admin && !data.platform_permissions.includes(platformPermission)) {
+    return <Navigate to="/app" replace />
   }
 
   return <>{children}</>

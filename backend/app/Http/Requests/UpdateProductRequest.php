@@ -50,6 +50,12 @@ class UpdateProductRequest extends FormRequest
             $merge['reorder_level'] = $this->input('reorder_level') === '' ? null : $this->input('reorder_level');
         }
 
+        foreach (['public_slug', 'public_description', 'public_image_id', 'public_image_url', 'public_image_alt'] as $field) {
+            if ($this->has($field) && is_string($this->input($field)) && trim($this->input($field)) === '') {
+                $merge[$field] = null;
+            }
+        }
+
         $this->merge($merge);
     }
 
@@ -82,6 +88,12 @@ class UpdateProductRequest extends FormRequest
             'selling_price' => ['sometimes', 'required', 'numeric', 'min:0', 'regex:/^\d+(\.\d+)?$/'],
             'track_stock' => ['sometimes', 'boolean'],
             'is_active' => ['sometimes', 'boolean'],
+            'is_public' => ['sometimes', 'boolean'],
+            'public_slug' => ['sometimes', 'nullable', 'string', 'max:180', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('products', 'public_slug')->where(fn ($query) => $query->where('branch_id', $branch->id))->ignore($product->id)],
+            'public_description' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'public_image_id' => ['sometimes', 'nullable', 'string', 'exists:cms_media,id'],
+            'public_image_url' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'public_image_alt' => ['sometimes', 'nullable', 'string', 'max:250'],
             'reorder_level' => ['sometimes', 'nullable', 'numeric', 'min:0', 'regex:/^\d+(\.\d{1,4})?$/'],
         ];
 
@@ -133,6 +145,29 @@ class UpdateProductRequest extends FormRequest
                     } elseif ($this->input('base_unit_id') !== $product->base_unit_id && ! $unit->is_active) {
                         $validator->errors()->add('base_unit_id', 'The selected unit is archived.');
                     }
+                }
+
+                $willBePublic = $this->has('is_public') ? $this->boolean('is_public') : $product->is_public;
+                $publicSlug = $this->has('public_slug') ? $this->input('public_slug') : $product->public_slug;
+                $publicDescription = $this->has('public_description') ? $this->input('public_description') : $product->public_description;
+                if ($willBePublic && (! $publicSlug || ! $publicDescription)) {
+                    $validator->errors()->add('is_public', 'A public slug and customer-facing description are required before publishing.');
+                }
+                $imageId = $this->has('public_image_id') ? $this->input('public_image_id') : $product->public_image_id;
+                $imageUrl = $this->has('public_image_url') ? $this->input('public_image_url') : $product->public_image_url;
+                $imageAlt = $this->has('public_image_alt') ? $this->input('public_image_alt') : $product->public_image_alt;
+                if ($imageUrl) {
+                    $imageUrl = (string) $imageUrl;
+                    $isRelative = str_starts_with($imageUrl, '/') && ! str_starts_with($imageUrl, '//');
+                    $isAbsolute = filter_var($imageUrl, FILTER_VALIDATE_URL) !== false
+                        && in_array(parse_url($imageUrl, PHP_URL_SCHEME), ['http', 'https'], true);
+
+                    if (! $isRelative && ! $isAbsolute) {
+                        $validator->errors()->add('public_image_url', 'Enter an http(s) image URL or a path starting with /.');
+                    }
+                }
+                if (($imageId || $imageUrl) && ! $imageAlt) {
+                    $validator->errors()->add('public_image_alt', 'Describe the product image for customers using assistive technology.');
                 }
             },
         ];

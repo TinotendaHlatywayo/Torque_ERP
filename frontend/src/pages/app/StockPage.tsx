@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react'
+import { FormEvent, useDeferredValue, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,7 @@ export default function StockPage() {
   const canManage = branch?.permissions.includes('branch.inventory.manage') ?? false
 
   const [productFilter, setProductFilter] = useState('')
+  const deferredProductFilter = useDeferredValue(productFilter)
   const [movementType, setMovementType] = useState('')
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [selectedProductId, setSelectedProductId] = useState('')
@@ -43,10 +44,10 @@ export default function StockPage() {
   })
 
   const levelsQuery = useQuery({
-    queryKey: ['stock-levels', branchId, productFilter],
+    queryKey: ['stock-levels', branchId, deferredProductFilter],
     queryFn: async () => {
       const response = await api.get<StockLevelListResponse>(`/api/branches/${branchId}/stock/levels`, {
-        params: { q: productFilter || undefined, per_page: 100 },
+        params: { q: deferredProductFilter || undefined, per_page: 100 },
       })
       return response.data
     },
@@ -54,11 +55,11 @@ export default function StockPage() {
   })
 
   const movementsQuery = useQuery({
-    queryKey: ['stock-movements', branchId, { productFilter, movementType }],
+    queryKey: ['stock-movements', branchId, { productFilter: deferredProductFilter, movementType }],
     queryFn: async () => {
       const response = await api.get<StockMovementListResponse>(`/api/branches/${branchId}/stock/movements`, {
         params: {
-          product_id: productFilter || undefined,
+          product_id: deferredProductFilter || undefined,
           type: movementType || undefined,
           per_page: 50,
         },
@@ -172,7 +173,7 @@ export default function StockPage() {
 
         {feedback && (
           <div
-            role="status"
+            role={feedback.type === 'error' ? 'alert' : 'status'}
             className={
               feedback.type === 'error'
                 ? 'rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive'
@@ -293,10 +294,10 @@ export default function StockPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b text-muted-foreground">
                     <tr>
-                      <th className="py-3 pr-4 font-medium">Product</th>
-                      <th className="py-3 pr-4 font-medium">On hand</th>
-                      <th className="py-3 pr-4 font-medium">Reserved</th>
-                      <th className="py-3 font-medium">Low</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Product</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">On hand</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Reserved</th>
+                      <th className="py-3 font-medium" scope="col">Low</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -353,12 +354,12 @@ export default function StockPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b text-muted-foreground">
                     <tr>
-                      <th className="py-3 pr-4 font-medium">Type</th>
-                      <th className="py-3 pr-4 font-medium">Product</th>
-                      <th className="py-3 pr-4 font-medium">Quantity</th>
-                      <th className="py-3 pr-4 font-medium">Balance</th>
-                      <th className="py-3 pr-4 font-medium">Reason</th>
-                      <th className="py-3 font-medium text-right">Actions</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Type</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Product</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Quantity</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Balance</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Reason</th>
+                      <th className="py-3 font-medium text-right" scope="col">Actions</th>
                     </tr>
                   </thead>
                   <tbody>

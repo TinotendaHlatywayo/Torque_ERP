@@ -29,7 +29,11 @@ class SaleController extends Controller
         $paymentStatus = $request->query('payment_status');
 
         $sales = $branch->sales()
-            ->with(['customer:id,name', 'receipt:id,sale_id,receipt_number'])
+            ->with([
+                'customer:id,name',
+                'receipt:id,sale_id,receipt_number',
+            ])
+            ->withCount('items')
             ->when(is_string($status) && $status !== '', fn ($query) => $query->where('status', $status))
             ->when(is_string($paymentStatus) && $paymentStatus !== '', fn ($query) => $query->where('payment_status', $paymentStatus))
             ->orderByDesc('created_at')
@@ -38,7 +42,7 @@ class SaleController extends Controller
             ->withQueryString();
 
         return response()->json([
-            'data' => $sales->getCollection()->map(fn (Sale $sale): array => $this->salePayload($sale))->all(),
+            'data' => $sales->getCollection()->map(fn (Sale $sale): array => $this->saleSummaryPayload($sale))->all(),
             'meta' => [
                 'current_page' => $sales->currentPage(),
                 'last_page' => $sales->lastPage(),
@@ -201,6 +205,31 @@ class SaleController extends Controller
         $saleReturn->load(['sale:id,sale_number', 'items']);
 
         return response()->json(['data' => $this->returnPayload($saleReturn)]);
+    }
+
+    private function saleSummaryPayload(Sale $sale): array
+    {
+        $sale->loadMissing(['customer:id,name', 'receipt:id,sale_id,receipt_number']);
+
+        return [
+            'id' => $sale->id,
+            'sale_number' => $sale->sale_number,
+            'status' => $sale->status,
+            'payment_status' => $sale->payment_status,
+            'currency_code' => $sale->currency_code,
+            'subtotal_minor' => $sale->subtotal_minor,
+            'discount_minor' => $sale->discount_minor,
+            'tax_minor' => $sale->tax_minor,
+            'total_minor' => $sale->total_minor,
+            'paid_minor' => $sale->paid_minor,
+            'customer' => $sale->customer ? ['id' => $sale->customer->id, 'name' => $sale->customer->name] : null,
+            'receipt' => $sale->receipt ? [
+                'id' => $sale->receipt->id,
+                'receipt_number' => $sale->receipt->receipt_number,
+            ] : null,
+            'items_count' => $sale->items_count ?? 0,
+            'created_at' => $sale->created_at?->toIso8601String(),
+        ];
     }
 
     private function salePayload(Sale $sale): array

@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:11.2
+    container_type: server
+    restart: always
+    environment:
+      MYSQL_DATABASE: tms_erp
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: tms_user
+      MYSQL_PASSWORD: tmspassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tms_backend
+    restart: always
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_NAME=TMS_ERP
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=http://localhost:8000
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=tms_erp
+      - DB_USERNAME=tms_user
+      - DB_PASSWORD=tmspassword
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tms_frontend
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    command: npm run dev -- --host=0.0.0.0 --port=5173
+
+volumes:
+  db_data:

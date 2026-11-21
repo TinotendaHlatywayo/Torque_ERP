@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Brake pad set placeholder">
+  <rect width="640" height="640" fill="#f5f8f7"/>
+  <circle cx="320" cy="300" r="230" fill="#e7f4f1"/>
+  <g transform="translate(120 200)">
+    <rect x="40" y="0" width="320" height="90" rx="12" fill="#172a32"/>
+    <rect x="40" y="96" width="320" height="150" rx="10" fill="#078878"/>
+    <rect x="72" y="126" width="256" height="90" rx="6" fill="#f5f8f7"/>
+    <rect x="72" y="126" width="256" height="18" rx="6" fill="#5eead4"/>
+    <circle cx="90" cy="235" r="12" fill="#172a32"/>
+    <circle cx="310" cy="235" r="12" fill="#172a32"/>
+  </g>
+  <text x="320" y="510" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#172a32">BRAKE PAD SET</text>
+  <text x="320" y="548" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#06796b">TMS placeholder image</text>
+</svg>

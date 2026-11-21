@@ -25,10 +25,10 @@ class StockMovementController extends Controller
             'type' => ['nullable', 'string', 'in:opening,sale,correction,reversal'],
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1'],
         ])->validate();
 
-        $perPage = (int) ($filters['per_page'] ?? 25);
+        $perPage = min(max((int) ($filters['per_page'] ?? 25), 1), 100);
 
         $movements = $branch->stockMovements()
             ->with([

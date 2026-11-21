@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\SyncOperation;
+use App\Support\SyncOperationProcessor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SyncController extends Controller
 {
+    public function __construct(private readonly SyncOperationProcessor $processor) {}
+
     public function upload(Request $request, Branch $branch): JsonResponse
     {
         $data = $request->validate([
@@ -20,7 +23,7 @@ class SyncController extends Controller
             'operations.*.payload_version' => ['required', 'integer', 'min:1'],
             'operations.*.client_time' => ['required', 'date'],
             'operations.*.idempotency_key' => ['required', 'string', 'max:100'],
-            'operations.*.payload' => ['required', 'array'],
+            'operations.*.payload' => ['present', 'array'],
         ]);
 
         $user = $request->user();
@@ -37,6 +40,7 @@ class SyncController extends Controller
                     'status' => $existing->status,
                     'result' => $existing->result,
                     'error' => $existing->error_message,
+                    'error_class' => $existing->error_class,
                     'replayed' => true,
                 ];
 
@@ -55,13 +59,25 @@ class SyncController extends Controller
                 'client_time' => $operation['client_time'],
                 'server_time' => now(),
                 'payload' => $operation['payload'],
-                'result' => ['message' => 'Operation accepted for processing'],
+                'result' => null,
+            ]);
+
+            $outcome = $this->processor->process($branch, $user, $operation);
+
+            $syncOp->update([
+                'status' => $outcome['status'],
+                'result' => $outcome['result'],
+                'error_message' => $outcome['error'],
+                'error_class' => $outcome['error_class'],
+                'attempt_count' => $syncOp->attempt_count + 1,
             ]);
 
             $results[] = [
                 'operation_id' => $operation['operation_id'],
-                'status' => 'accepted',
-                'result' => $syncOp->result,
+                'status' => $outcome['status'],
+                'result' => $outcome['result'],
+                'error' => $outcome['error'],
+                'error_class' => $outcome['error_class'],
                 'replayed' => false,
             ];
         }

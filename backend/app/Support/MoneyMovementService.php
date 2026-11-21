@@ -52,7 +52,7 @@ final class MoneyMovementService
             ]);
         }
 
-        $direction = in_array($movementType, ['adjustment_out'], true) ? 'out' : 'in';
+        $direction = in_array($movementType, ['adjustment_out', 'sale_return_refund'], true) ? 'out' : 'in';
         $reason = trim($reason);
 
         if ($reason === '') {
@@ -75,7 +75,7 @@ final class MoneyMovementService
         ];
 
         $requestHash = hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
-        $idempotencyKey = trim($idempotencyKey);
+        $idempotencyKey = $this->normalizeIdempotencyKey($idempotencyKey);
 
         $existing = MoneyMovement::where('branch_id', $branch->id)
             ->where('idempotency_key', $idempotencyKey)
@@ -185,7 +185,10 @@ final class MoneyMovementService
             ]);
         }
 
-        $idempotencyKey = trim($idempotencyKey);
+        $idempotencyKey = $this->normalizeIdempotencyKey($idempotencyKey);
+        $transferKey = 'transfer:'.substr(hash('sha256', $branch->id.'|'.$idempotencyKey), 0, 32);
+        $outgoingKey = $transferKey.':out';
+        $incomingKey = $transferKey.':in';
 
         $payload = [
             'from_account_id' => $from->id,
@@ -199,7 +202,7 @@ final class MoneyMovementService
         $requestHash = hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
 
         $existingOutgoing = MoneyMovement::where('branch_id', $branch->id)
-            ->where('idempotency_key', $idempotencyKey)
+            ->where('idempotency_key', $outgoingKey)
             ->where('movement_type', 'transfer_out')
             ->first();
 
@@ -215,9 +218,9 @@ final class MoneyMovementService
             return ['outgoing' => $existingOutgoing, 'incoming' => $incoming];
         }
 
-        return DB::transaction(function () use ($branch, $from, $to, $amountMinor, $currencyCode, $reason, $reference, $actor, $idempotencyKey, $requestHash): array {
+        return DB::transaction(function () use ($branch, $from, $to, $amountMinor, $currencyCode, $reason, $reference, $actor, $outgoingKey, $incomingKey, $requestHash): array {
             $existingOutgoing = MoneyMovement::where('branch_id', $branch->id)
-                ->where('idempotency_key', $idempotencyKey)
+                ->where('idempotency_key', $outgoingKey)
                 ->where('movement_type', 'transfer_out')
                 ->lockForUpdate()
                 ->first();
@@ -248,7 +251,7 @@ final class MoneyMovementService
                 'reference' => $reference,
                 'reason' => $reason,
                 'transfer_group_id' => $groupId,
-                'idempotency_key' => $idempotencyKey,
+                'idempotency_key' => $outgoingKey,
                 'request_hash' => $requestHash,
                 'actor_id' => $actor->id,
             ]);
@@ -266,7 +269,7 @@ final class MoneyMovementService
                 'reason' => $reason,
                 'related_movement_id' => $outgoing->id,
                 'transfer_group_id' => $groupId,
-                'idempotency_key' => $idempotencyKey.':in',
+                'idempotency_key' => $incomingKey,
                 'request_hash' => $requestHash,
                 'actor_id' => $actor->id,
             ]);
@@ -291,23 +294,41 @@ final class MoneyMovementService
             ]);
         }
 
-        $idempotencyKey = trim($idempotencyKey);
+        $idempotencyKey = $this->normalizeIdempotencyKey($idempotencyKey);
 
         $existing = MoneyMovement::where('branch_id', $branch->id)
             ->where('idempotency_key', $idempotencyKey)
             ->first();
 
+        $requestHash = hash('sha256', json_encode([
+            'movement_id' => $movement->id,
+            'reason' => $reason,
+        ], JSON_THROW_ON_ERROR));
+
         if ($existing) {
+            $this->verifyReversalReplay($existing, $movement, $requestHash);
+
             return $existing;
         }
 
         $oppositeDirection = $movement->direction === 'in' ? 'out' : 'in';
 
-        return DB::transaction(function () use ($branch, $movement, $reason, $actor, $idempotencyKey, $oppositeDirection): MoneyMovement {
+        return DB::transaction(function () use ($branch, $movement, $reason, $actor, $idempotencyKey, $requestHash, $oppositeDirection): MoneyMovement {
             $movement = MoneyMovement::where('branch_id', $branch->id)
                 ->whereKey($movement->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            $existing = MoneyMovement::where('branch_id', $branch->id)
+                ->where('idempotency_key', $idempotencyKey)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing) {
+                $this->verifyReversalReplay($existing, $movement, $requestHash);
+
+                return $existing;
+            }
 
             if ($movement->reversedBy()->exists()) {
                 return $movement->reversedBy()->first();
@@ -326,10 +347,7 @@ final class MoneyMovementService
                 'reason' => $reason,
                 'reverses_movement_id' => $movement->id,
                 'idempotency_key' => $idempotencyKey,
-                'request_hash' => hash('sha256', json_encode([
-                    'movement_id' => $movement->id,
-                    'reason' => $reason,
-                ], JSON_THROW_ON_ERROR)),
+                'request_hash' => $requestHash,
                 'actor_id' => $actor->id,
             ]);
 
@@ -347,5 +365,30 @@ final class MoneyMovementService
 
             return $reversal;
         }, 3);
+    }
+
+    private function verifyReversalReplay(MoneyMovement $existing, MoneyMovement $movement, string $requestHash): void
+    {
+        if ((string) $existing->reverses_movement_id !== (string) $movement->id
+            || ! hash_equals((string) $existing->request_hash, $requestHash)) {
+            throw new ConflictHttpException('The Idempotency-Key has already been used with a different reversal.');
+        }
+    }
+
+    private function normalizeIdempotencyKey(string $key): string
+    {
+        $key = trim($key);
+
+        if ($key === '') {
+            return (string) Str::uuid();
+        }
+
+        if (strlen($key) > 100) {
+            throw ValidationException::withMessages([
+                'idempotency_key' => 'The Idempotency-Key header cannot exceed 100 characters.',
+            ]);
+        }
+
+        return $key;
     }
 }

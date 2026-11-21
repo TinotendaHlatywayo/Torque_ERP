@@ -9,7 +9,7 @@ import { EmptyState, ErrorState, LoadingState, PermissionDeniedState } from '@/c
 import { useMe } from '@/hooks/useMe'
 import api from '@/lib/api'
 import { apiErrorMessage } from '@/lib/apiErrors'
-import type { SaleDetail, SaleReturn } from '@/lib/sales'
+import type { SaleDetail, SaleReturn, SaleSummary } from '@/lib/sales'
 
 export default function SalesHistoryPage() {
   const queryClient = useQueryClient()
@@ -27,7 +27,7 @@ export default function SalesHistoryPage() {
   const salesQuery = useQuery({
     queryKey: ['sales', branchId],
     queryFn: async () => {
-      const response = await api.get<{ data: SaleDetail[] }>(`/api/branches/${branchId}/sales`)
+      const response = await api.get<{ data: SaleSummary[] }>(`/api/branches/${branchId}/sales`)
       return response.data.data
     },
     enabled: Boolean(branchId && canView),

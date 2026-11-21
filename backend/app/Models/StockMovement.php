@@ -15,13 +15,25 @@ class StockMovement extends Model
 
     public const TYPE_SALE = 'sale';
 
+    public const TYPE_JOB_CONSUMPTION = 'job_consumption';
+
     public const TYPE_CORRECTION = 'correction';
+
+    public const TYPE_TRANSFER_OUT = 'transfer_out';
+
+    public const TYPE_TRANSFER_IN = 'transfer_in';
 
     public const TYPE_REVERSAL = 'reversal';
 
     public const SOURCE_OPENING = 'opening';
 
     public const SOURCE_SALE = 'sale';
+
+    public const SOURCE_JOB = 'job';
+
+    public const SOURCE_STOCK_TRANSFER = 'stock_transfer';
+
+    public const SOURCE_STOCKTAKE = 'stocktake';
 
     public const SOURCE_MANUAL = 'manual';
 

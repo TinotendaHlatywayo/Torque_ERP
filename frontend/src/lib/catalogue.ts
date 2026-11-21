@@ -50,6 +50,13 @@ export type Product = {
   currency_code: string
   track_stock: boolean
   is_active: boolean
+  public_slug: string | null
+  public_description: string | null
+  is_public: boolean
+  public_image_id: string | null
+  public_image_url: string | null
+  public_image_preview_url?: string | null
+  public_image_alt: string | null
   stock: ProductStock
   alternate_unit_count: number
   created_at: string | null

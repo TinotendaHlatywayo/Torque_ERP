@@ -79,6 +79,48 @@ class MoneyMovementTest extends TestCase
         ]);
     }
 
+    public function test_movements_without_idempotency_key_do_not_collide(): void
+    {
+        $account = PaymentAccount::create([
+            'branch_id' => $this->branchA->id,
+            'name' => 'Cash',
+            'type' => 'cash',
+            'currency_code' => 'USD',
+            'is_active' => true,
+        ]);
+
+        $firstId = $this->withAuthToken($this->admin)
+            ->postJson("/api/branches/{$this->branchA->id}/payment-accounts/{$account->id}/movements", [
+                'movement_type' => 'opening',
+                'amount_minor' => 1000,
+                'currency_code' => 'USD',
+                'reason' => 'First opening',
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $secondId = $this->withAuthToken($this->admin)
+            ->postJson("/api/branches/{$this->branchA->id}/payment-accounts/{$account->id}/movements", [
+                'movement_type' => 'opening',
+                'amount_minor' => 2000,
+                'currency_code' => 'USD',
+                'reason' => 'Second opening',
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->assertNotSame($firstId, $secondId);
+        $this->assertSame(2, MoneyMovement::where('branch_id', $this->branchA->id)->count());
+
+        $keys = MoneyMovement::where('branch_id', $this->branchA->id)->pluck('idempotency_key')->all();
+
+        $this->assertSame(2, count(array_unique($keys)));
+
+        foreach ($keys as $key) {
+            $this->assertNotSame('', trim((string) $key));
+        }
+    }
+
     public function test_transfer_creates_linked_paired_movements(): void
     {
         $cash = PaymentAccount::create([
@@ -265,6 +307,79 @@ class MoneyMovementTest extends TestCase
         $this->assertSame(2, MoneyMovement::where('branch_id', $this->branchA->id)->count());
     }
 
+    public function test_transfer_idempotency_keys_are_bounded_and_directional(): void
+    {
+        $cash = PaymentAccount::create([
+            'branch_id' => $this->branchA->id,
+            'name' => 'Cash',
+            'type' => 'cash',
+            'currency_code' => 'USD',
+            'is_active' => true,
+        ]);
+        $bank = PaymentAccount::create([
+            'branch_id' => $this->branchA->id,
+            'name' => 'Bank',
+            'type' => 'bank',
+            'currency_code' => 'USD',
+            'is_active' => true,
+        ]);
+        $key = (string) Str::uuid();
+
+        $transfer = $this->withAuthToken($this->admin)
+            ->withHeader('Idempotency-Key', $key)
+            ->postJson("/api/branches/{$this->branchA->id}/transfers", [
+                'from_account_id' => $cash->id,
+                'to_account_id' => $bank->id,
+                'amount_minor' => 1200,
+                'currency_code' => 'USD',
+                'reason' => 'Bounded keys',
+            ])
+            ->assertCreated()
+            ->json('data');
+
+        $keys = MoneyMovement::query()
+            ->whereIn('id', [$transfer['outgoing_id'], $transfer['incoming_id']])
+            ->pluck('idempotency_key', 'movement_type')
+            ->all();
+
+        $this->assertNotSame($key, $keys['transfer_out']);
+        $this->assertStringEndsWith(':out', $keys['transfer_out']);
+        $this->assertStringEndsWith(':in', $keys['transfer_in']);
+        $this->assertLessThanOrEqual(100, strlen($keys['transfer_out']));
+        $this->assertLessThanOrEqual(100, strlen($keys['transfer_in']));
+    }
+
+    public function test_reversal_idempotency_key_cannot_reverse_another_movement(): void
+    {
+        $account = PaymentAccount::create([
+            'branch_id' => $this->branchA->id,
+            'name' => 'Cash',
+            'type' => 'cash',
+            'currency_code' => 'USD',
+            'is_active' => true,
+        ]);
+
+        $first = $this->createMovement($account, 3000, 'First opening');
+        $second = $this->createMovement($account, 4000, 'Second opening');
+
+        $this->withAuthToken($this->admin)
+            ->withHeader('Idempotency-Key', 'shared-reversal-key')
+            ->postJson("/api/branches/{$this->branchA->id}/money-movements/{$first->id}/reverse", [
+                'reason' => 'Correction',
+            ])
+            ->assertOk();
+
+        $this->withAuthToken($this->admin)
+            ->withHeader('Idempotency-Key', 'shared-reversal-key')
+            ->postJson("/api/branches/{$this->branchA->id}/money-movements/{$second->id}/reverse", [
+                'reason' => 'Correction',
+            ])
+            ->assertStatus(409);
+
+        $this->assertSame(3, MoneyMovement::where('branch_id', $this->branchA->id)->count());
+        $this->assertSame(1, MoneyMovement::where('movement_type', 'reversal')->count());
+    }
+
     public function test_permission_denial_and_cross_branch_isolation(): void
     {
         $account = PaymentAccount::create([
@@ -286,5 +401,22 @@ class MoneyMovementTest extends TestCase
         $this->withAuthToken($this->admin)
             ->getJson("/api/branches/{$this->branchB->id}/payment-accounts")
             ->assertForbidden();
+    }
+
+    private function createMovement(PaymentAccount $account, int $amountMinor, string $reason): MoneyMovement
+    {
+        $this->withAuthToken($this->admin)
+            ->withHeader('Idempotency-Key', (string) Str::uuid())
+            ->postJson("/api/branches/{$this->branchA->id}/payment-accounts/{$account->id}/movements", [
+                'movement_type' => 'opening',
+                'amount_minor' => $amountMinor,
+                'currency_code' => 'USD',
+                'reason' => $reason,
+            ])
+            ->assertCreated();
+
+        return MoneyMovement::where('payment_account_id', $account->id)
+            ->where('amount_minor', $amountMinor)
+            ->firstOrFail();
     }
 }

@@ -6,15 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Branch;
+use App\Models\CmsMedia;
 use App\Models\Product;
 use App\Models\ProductUnit;
 use App\Support\AuditLogger;
+use App\Support\CmsImageProcessor;
 use App\Support\Money;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use RuntimeException;
 
 class ProductController extends Controller
 {
@@ -33,7 +37,7 @@ class ProductController extends Controller
         $direction = $request->query('direction') === 'desc' ? 'desc' : 'asc';
 
         $query = $branch->products()
-            ->with(['category:id,name,is_active', 'baseUnit:id,code,name', 'stockLevel'])
+            ->with(['category:id,name,is_active', 'baseUnit:id,code,name', 'stockLevel', 'publicImage'])
             ->withCount('units')
             ->when($status === 'active', fn ($builder) => $builder->where('is_active', true))
             ->when($status === 'inactive', fn ($builder) => $builder->where('is_active', false))
@@ -73,10 +77,74 @@ class ProductController extends Controller
 
     public function show(Branch $branch, Product $product): JsonResponse
     {
-        $product->load(['category:id,name,is_active', 'baseUnit:id,code,name,symbol,allow_decimal', 'stockLevel', 'units.unit']);
+        $product->load(['category:id,name,is_active', 'baseUnit:id,code,name,symbol,allow_decimal', 'stockLevel', 'publicImage', 'units.unit']);
         $product->loadCount('units');
 
         return response()->json(['data' => $this->payload($product, true)]);
+    }
+
+    public function uploadImage(Request $request, Branch $branch, CmsImageProcessor $processor): JsonResponse
+    {
+        $data = $request->validate([
+            'image' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+        ]);
+
+        try {
+            $media = $processor->store($data['image'], $request->user());
+        } catch (RuntimeException $exception) {
+            throw ValidationException::withMessages(['image' => $exception->getMessage()]);
+        }
+
+        return response()->json(['data' => $this->mediaData($media, $branch)], 201);
+    }
+
+    public function mediaPreview(Branch $branch, CmsMedia $cmsMedia, string $variant)
+    {
+        $variant = str_replace('-', '_', $variant);
+        $path = $cmsMedia->variants[$variant]['path'] ?? ($variant === 'original' ? $cmsMedia->original_path : null);
+        abort_unless($path && Storage::disk('local')->exists($path), 404);
+
+        $mime = $cmsMedia->variants[$variant]['mime'] ?? $cmsMedia->mime_type;
+
+        return response()->file(Storage::disk('local')->path($path), [
+            'Content-Type' => $mime,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
+    private function mediaData(CmsMedia $media, Branch $branch): array
+    {
+        return [
+            'id' => $media->id,
+            'name' => $media->original_name,
+            'mime_type' => $media->mime_type,
+            'width' => $media->width,
+            'height' => $media->height,
+            'preferred_variant' => $media->preferred_variant,
+            'preview_url' => $this->mediaPreviewUrl($media, $branch->id),
+            'variants' => collect($media->variants)->map(fn (array $variant, string $key): array => [
+                'key' => $key,
+                'url' => route('branch.product.media.preview', [$branch->id, $media->id, str_replace('_', '-', $key)]),
+                'width' => $variant['width'],
+                'height' => $variant['height'],
+                'mime_type' => $variant['mime'],
+                'bytes' => $variant['bytes'] ?? null,
+                'is_preferred' => $key === $media->preferred_variant,
+            ])->values()->all(),
+        ];
+    }
+
+    private function mediaPreviewUrl(?CmsMedia $media, string $branchId): ?string
+    {
+        if (! $media) {
+            return null;
+        }
+
+        $variant = $media->preferred_variant
+            ?? (isset($media->variants['960_webp']) ? '960_webp' : (isset($media->variants['960_avif']) ? '960_avif' : 'original'));
+
+        return route('branch.product.media.preview', [$branchId, $media->id, str_replace('_', '-', $variant)]);
     }
 
     public function store(StoreProductRequest $request, Branch $branch): JsonResponse
@@ -104,7 +172,7 @@ class ProductController extends Controller
                 'reorder_level' => $reorderLevel,
             ]);
 
-            $product->load(['category:id,name,is_active', 'baseUnit:id,code,name,symbol,allow_decimal', 'stockLevel', 'units.unit']);
+            $product->load(['category:id,name,is_active', 'baseUnit:id,code,name,symbol,allow_decimal', 'stockLevel', 'publicImage', 'units.unit']);
             $product->loadCount('units');
 
             $this->audit->log(
@@ -163,7 +231,7 @@ class ProductController extends Controller
             }
 
             $product->refresh();
-            $product->load(['category:id,name,is_active', 'baseUnit:id,code,name,symbol,allow_decimal', 'stockLevel', 'units.unit']);
+            $product->load(['category:id,name,is_active', 'baseUnit:id,code,name,symbol,allow_decimal', 'stockLevel', 'publicImage', 'units.unit']);
             $product->loadCount('units');
 
             $this->audit->log(
@@ -237,6 +305,13 @@ class ProductController extends Controller
             'currency_code' => $product->currency_code,
             'track_stock' => $product->track_stock,
             'is_active' => $product->is_active,
+            'public_slug' => $product->public_slug,
+            'public_description' => $product->public_description,
+            'is_public' => $product->is_public,
+            'public_image_id' => $product->public_image_id,
+            'public_image_url' => $product->public_image_url,
+            'public_image_preview_url' => $this->mediaPreviewUrl($product->publicImage, $product->branch_id),
+            'public_image_alt' => $product->public_image_alt,
             'stock' => [
                 'quantity_on_hand' => $stock?->quantity_on_hand ?? '0.0000',
                 'quantity_reserved' => $stock?->quantity_reserved ?? '0.0000',
@@ -288,6 +363,12 @@ class ProductController extends Controller
             'currency_code' => $product->currency_code,
             'track_stock' => $product->track_stock,
             'is_active' => $product->is_active,
+            'public_slug' => $product->public_slug,
+            'public_description' => $product->public_description,
+            'is_public' => $product->is_public,
+            'public_image_id' => $product->public_image_id,
+            'public_image_url' => $product->public_image_url,
+            'public_image_alt' => $product->public_image_alt,
         ];
     }
 }

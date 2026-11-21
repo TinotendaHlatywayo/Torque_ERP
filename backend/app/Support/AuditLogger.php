@@ -46,7 +46,7 @@ class AuditLogger
             return null;
         }
 
-        $sensitive = ['password', 'password_confirmation', 'token', 'secret', 'api_key', 'card_number', 'cvv', 'access_token', 'refresh_token'];
+        $sensitive = ['password', 'password_confirmation', 'token', 'secret', 'api_key', 'card_number', 'cvv', 'access_token', 'refresh_token', 'national_id', 'date_of_birth', 'address', 'emergency_contact_name', 'emergency_contact_phone', 'bank_account', 'bank_details'];
 
         foreach ($payload as $key => $value) {
             if (is_array($value)) {

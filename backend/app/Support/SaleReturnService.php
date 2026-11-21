@@ -3,6 +3,9 @@
 namespace App\Support;
 
 use App\Models\Branch;
+use App\Models\MoneyMovement;
+use App\Models\PaymentAccount;
+use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SaleReturn;
@@ -17,6 +20,8 @@ final class SaleReturnService
     public function __construct(
         private readonly DocumentNumberService $documentNumbers,
         private readonly AuditLogger $audit,
+        private readonly StockLedger $stockLedger,
+        private readonly MoneyMovementService $movements,
     ) {}
 
     /**
@@ -40,7 +45,7 @@ final class SaleReturnService
             ]);
         }
 
-        $requestHash = hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
+        $requestHash = $this->requestHash($payload);
 
         $existing = SaleReturn::where('branch_id', $branch->id)
             ->where('idempotency_key', $idempotencyKey)
@@ -193,5 +198,142 @@ final class SaleReturnService
 
             return $saleReturn->load('items');
         }, 3);
+    }
+
+    public function approve(Branch $branch, SaleReturn $saleReturn, PaymentAccount $account, User $actor): SaleReturn
+    {
+        if ($saleReturn->branch_id !== $branch->id || $account->branch_id !== $branch->id) {
+            abort(404);
+        }
+
+        if ($account->currency_code !== $saleReturn->currency_code) {
+            throw ValidationException::withMessages([
+                'payment_account_id' => 'The payment account currency must match the return currency.',
+            ]);
+        }
+
+        $refundKey = 'sale_return:'.$saleReturn->id.':refund';
+
+        return DB::transaction(function () use ($branch, $saleReturn, $account, $actor, $refundKey): SaleReturn {
+            $current = SaleReturn::where('branch_id', $branch->id)
+                ->whereKey($saleReturn->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $existingRefund = MoneyMovement::where('branch_id', $branch->id)
+                ->where('idempotency_key', $refundKey)
+                ->first();
+
+            if ($current->status === 'approved' && $current->refund_status === 'refunded') {
+                if (! $existingRefund
+                    || (string) $existingRefund->payment_account_id !== (string) $account->id
+                    || $existingRefund->amount_minor !== $current->total_minor) {
+                    throw new ConflictHttpException('This return has already been processed with a different refund.');
+                }
+
+                return $current->load('items');
+            }
+
+            if ($current->status !== 'requested'
+                || $current->restock_decision !== 'pending'
+                || $current->refund_status !== 'none'
+                || $existingRefund) {
+                throw new ConflictHttpException('This return has already been processed.');
+            }
+
+            $restocked = false;
+
+            foreach ($current->items as $item) {
+                $saleItem = SaleItem::where('branch_id', $branch->id)
+                    ->whereKey($item->sale_item_id)
+                    ->firstOrFail();
+
+                $product = Product::where('branch_id', $branch->id)
+                    ->whereKey($item->product_id)
+                    ->firstOrFail();
+
+                if (! $product->track_stock) {
+                    continue;
+                }
+
+                $this->stockLedger->postCorrection(
+                    $branch,
+                    $product,
+                    (string) $item->quantity,
+                    $saleItem->unit_id,
+                    'Return '.$current->return_number,
+                    $actor,
+                    'sale_return:'.$current->id.':restock:'.$item->id,
+                );
+                $restocked = true;
+            }
+
+            $refund = $this->movements->postMovement(
+                $branch,
+                $account,
+                'sale_return_refund',
+                $current->total_minor,
+                $current->currency_code,
+                $current->return_number,
+                'Refund for sale return '.$current->return_number,
+                'sale_return',
+                (string) $current->id,
+                $actor,
+                $refundKey,
+            );
+
+            $current->update([
+                'status' => 'approved',
+                'restock_decision' => $restocked ? 'restocked' : 'not_restocked',
+                'refund_status' => 'refunded',
+            ]);
+
+            $this->audit->log(
+                'sale.return.approved',
+                $current,
+                [
+                    'status' => 'requested',
+                    'restock_decision' => 'pending',
+                    'refund_status' => 'none',
+                ],
+                [
+                    'status' => 'approved',
+                    'restock_decision' => $current->restock_decision,
+                    'refund_status' => 'refunded',
+                    'refund_movement_id' => $refund->id,
+                ],
+                $branch->id,
+                $actor,
+            );
+
+            return $current->load('items');
+        }, 3);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function requestHash(array $payload): string
+    {
+        return hash('sha256', json_encode($this->normalizePayload($payload), JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * @param  array<mixed>  $payload
+     * @return array<mixed>
+     */
+    private function normalizePayload(array $payload): array
+    {
+        $normalized = [];
+
+        foreach ($payload as $key => $value) {
+            $normalized[$key] = is_array($value) ? $this->normalizePayload($value) : $value;
+        }
+
+        if (! array_is_list($normalized)) {
+            ksort($normalized);
+        }
+
+        return $normalized;
     }
 }

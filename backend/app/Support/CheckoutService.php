@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Branch;
+use App\Models\BranchUser;
 use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\Product;
@@ -118,13 +119,28 @@ final class CheckoutService
                     ? trim($payload['discount_override_reason'])
                     : null;
 
-                $calculator = $this->priceCalculatorFactory->make($actor, $overrideReason !== '' ? $overrideReason : null);
+                $calculator = $this->priceCalculatorFactory->make();
                 $cart = $calculator->calculateCart($priceLines, $currencyCode);
 
-                if ($cart->requiresApproval && ($overrideReason === null || $overrideReason === '')) {
-                    throw ValidationException::withMessages([
-                        'discount_override_reason' => 'An approved reason is required for this discount or floor-price override.',
-                    ]);
+                if ($cart->requiresApproval) {
+                    if ($overrideReason === null || $overrideReason === '') {
+                        throw ValidationException::withMessages([
+                            'discount_override_reason' => 'An approved reason is required for this discount or floor-price override.',
+                        ]);
+                    }
+
+                    $membership = BranchUser::query()
+                        ->where('branch_id', $branch->id)
+                        ->where('user_id', $actor->id)
+                        ->where('is_active', true)
+                        ->first();
+
+                    if (! $membership?->hasPermission(Permissions::BRANCH_SALES_APPROVE_OVERRIDE)) {
+                        abort(403, 'You do not have permission to approve this override.');
+                    }
+
+                    $calculator = $this->priceCalculatorFactory->make($actor, $overrideReason);
+                    $cart = $calculator->calculateCart($priceLines, $currencyCode);
                 }
 
                 $paidMinor = 0;
@@ -182,7 +198,7 @@ final class CheckoutService
                 foreach ($cart->lines as $index => $line) {
                     $input = $lines[$index];
 
-                    SaleItem::create([
+                    $saleItem = SaleItem::create([
                         'branch_id' => $branch->id,
                         'sale_id' => $sale->id,
                         'product_id' => $line->productId,
@@ -206,7 +222,7 @@ final class CheckoutService
                             $line->unitId,
                             (string) $sale->id,
                             $actor,
-                            'sale:'.$sale->id.':'.$line->productId,
+                            'sale:'.$sale->id.':'.$saleItem->id,
                         );
                     }
                 }
@@ -377,8 +393,25 @@ final class CheckoutService
      */
     private function requestHash(array $payload): string
     {
-        ksort($payload);
+        return hash('sha256', json_encode($this->normalizePayload($payload), JSON_THROW_ON_ERROR));
+    }
 
-        return hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
+    /**
+     * @param  array<mixed>  $payload
+     * @return array<mixed>
+     */
+    private function normalizePayload(array $payload): array
+    {
+        $normalized = [];
+
+        foreach ($payload as $key => $value) {
+            $normalized[$key] = is_array($value) ? $this->normalizePayload($value) : $value;
+        }
+
+        if (! array_is_list($normalized)) {
+            ksort($normalized);
+        }
+
+        return $normalized;
     }
 }

@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import api from '@/lib/api'
 import type { MeResponse } from '@/lib/access'
+import api from '@/lib/api'
+import { preferActiveBranch } from '@/lib/branch'
 
 async function fetchMe(): Promise<MeResponse> {
   const response = await api.get<MeResponse>('/api/user')
-  return response.data
+  return preferActiveBranch(response.data)
 }
 
 export function useMe() {

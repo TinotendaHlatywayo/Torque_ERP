@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AssignCorrelationId;
 use App\Http\Middleware\EnsureBranchPermission;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsurePlatformPermission;
@@ -19,10 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->validateCsrfTokens(except: [
-            'login',
-            'logout',
-        ]);
+        $middleware->append(AssignCorrelationId::class);
 
         $middleware->api(prepend: [
             EnsureFrontendRequestsAreStateful::class,

@@ -16,7 +16,7 @@ export function Skeleton({ className = "" }: { className?: string }) {
 export function EmptyState({ title, description, action }: { title: string; description?: string; action?: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center space-y-4">
-      <h3 className="text-lg font-semibold">{title}</h3>
+      <h2 className="text-lg font-semibold">{title}</h2>
       {description && <p className="text-sm text-muted-foreground max-w-md">{description}</p>}
       {action}
     </div>
@@ -26,7 +26,7 @@ export function EmptyState({ title, description, action }: { title: string; desc
 export function ErrorState({ title = "Something went wrong", description, retry }: { title?: string; description?: string; retry?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center space-y-4" role="alert">
-      <h3 className="text-lg font-semibold text-destructive">{title}</h3>
+      <h2 className="text-lg font-semibold text-destructive">{title}</h2>
       {description && <p className="text-sm text-muted-foreground max-w-md">{description}</p>}
       {retry && <Button onClick={retry}>Try again</Button>}
     </div>
@@ -35,8 +35,8 @@ export function ErrorState({ title = "Something went wrong", description, retry 
 
 export function SuccessState({ title, description, action }: { title: string; description?: string; action?: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center space-y-4">
-      <h3 className="text-lg font-semibold text-green-600">{title}</h3>
+    <div className="flex flex-col items-center justify-center p-8 text-center space-y-4" role="status">
+      <h2 className="text-lg font-semibold text-foreground">{title}</h2>
       {description && <p className="text-sm text-muted-foreground max-w-md">{description}</p>}
       {action}
     </div>
@@ -46,7 +46,7 @@ export function SuccessState({ title, description, action }: { title: string; de
 export function PermissionDeniedState({ title = "Access denied", description = "You don't have permission to access this resource." }: { title?: string; description?: string }) {
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center space-y-4" role="alert">
-      <h3 className="text-lg font-semibold">{title}</h3>
+      <h2 className="text-lg font-semibold">{title}</h2>
       <p className="text-sm text-muted-foreground max-w-md">{description}</p>
     </div>
   )

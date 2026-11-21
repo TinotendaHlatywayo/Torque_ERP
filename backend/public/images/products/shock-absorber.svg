@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Shock absorber placeholder">
+  <rect width="640" height="640" fill="#f5f8f7"/>
+  <circle cx="320" cy="300" r="230" fill="#e7f4f1"/>
+  <g transform="translate(260 115)">
+    <rect x="36" y="0" width="48" height="40" rx="8" fill="#172a32"/>
+    <rect x="52" y="40" width="16" height="120" fill="#172a32"/>
+    <rect x="18" y="150" width="84" height="180" rx="16" fill="#078878"/>
+    <rect x="34" y="174" width="52" height="132" rx="8" fill="#5eead4"/>
+    <rect x="52" y="330" width="16" height="90" fill="#172a32"/>
+    <circle cx="60" cy="430" r="24" fill="#172a32"/>
+  </g>
+  <text x="320" y="510" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#172a32">SHOCK ABSORBER</text>
+  <text x="320" y="548" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#06796b">TMS placeholder image</text>
+</svg>

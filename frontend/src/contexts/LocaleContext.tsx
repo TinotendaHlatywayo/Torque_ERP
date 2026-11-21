@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, ReactNode } from "react"
-import { Locale, defaultLocale, t as translate } from "@/i18n"
+import { Locale, defaultLocale, localeLabels, t as translate } from "@/i18n"
 
 interface LocaleContextType {
   locale: Locale
+  locales: typeof localeLabels
   setLocale: (locale: Locale) => void
   t: (key: string) => string
 }
@@ -12,7 +13,8 @@ const LocaleContext = createContext<LocaleContextType | undefined>(undefined)
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useState<Locale>(() => {
     if (typeof window !== "undefined") {
-      return (localStorage.getItem("locale") as Locale) || defaultLocale
+      const stored = localStorage.getItem("locale") as Locale | null
+      return stored && stored in localeLabels ? stored : defaultLocale
     }
     return defaultLocale
   })
@@ -27,7 +29,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const t = (key: string) => translate(locale, key)
 
   return (
-    <LocaleContext.Provider value={{ locale, setLocale: setLocaleWithStorage, t }}>
+    <LocaleContext.Provider value={{ locale, locales: localeLabels, setLocale: setLocaleWithStorage, t }}>
       {children}
     </LocaleContext.Provider>
   )

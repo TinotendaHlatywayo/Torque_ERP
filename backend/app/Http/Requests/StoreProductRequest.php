@@ -30,6 +30,13 @@ class StoreProductRequest extends FormRequest
                 : null,
             'category_id' => $this->input('category_id') === '' ? null : $this->input('category_id'),
             'reorder_level' => $this->input('reorder_level') === '' ? null : $this->input('reorder_level'),
+            'public_slug' => is_string($this->input('public_slug')) && trim($this->input('public_slug')) !== '' ? trim($this->input('public_slug')) : null,
+            'public_description' => is_string($this->input('public_description')) && trim($this->input('public_description')) !== '' ? trim($this->input('public_description')) : null,
+            'public_image_id' => $this->input('public_image_id') === '' ? null : $this->input('public_image_id'),
+            'public_image_url' => is_string($this->input('public_image_url')) && trim($this->input('public_image_url')) !== ''
+                ? trim($this->input('public_image_url'))
+                : null,
+            'public_image_alt' => is_string($this->input('public_image_alt')) && trim($this->input('public_image_alt')) !== '' ? trim($this->input('public_image_alt')) : null,
         ];
 
         $this->merge($merge);
@@ -59,6 +66,12 @@ class StoreProductRequest extends FormRequest
             'selling_price' => ['required', 'numeric', 'min:0', 'regex:/^\d+(\.\d+)?$/'],
             'track_stock' => ['sometimes', 'boolean'],
             'is_active' => ['sometimes', 'boolean'],
+            'is_public' => ['sometimes', 'boolean'],
+            'public_slug' => ['nullable', 'string', 'max:180', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('products', 'public_slug')->where(fn ($query) => $query->where('branch_id', $branch->id))],
+            'public_description' => ['nullable', 'string', 'max:5000'],
+            'public_image_id' => ['nullable', 'string', 'exists:cms_media,id'],
+            'public_image_url' => ['nullable', 'string', 'max:500'],
+            'public_image_alt' => ['nullable', 'string', 'max:250'],
             'reorder_level' => ['nullable', 'numeric', 'min:0', 'regex:/^\d+(\.\d{1,4})?$/'],
         ];
 
@@ -107,6 +120,23 @@ class StoreProductRequest extends FormRequest
                     } elseif (! $unit->is_active) {
                         $validator->errors()->add('base_unit_id', 'The selected unit is archived.');
                     }
+                }
+
+                if ($this->boolean('is_public') && (! $this->filled('public_slug') || ! $this->filled('public_description'))) {
+                    $validator->errors()->add('is_public', 'A public slug and customer-facing description are required before publishing.');
+                }
+                if ($this->filled('public_image_url')) {
+                    $imageUrl = (string) $this->input('public_image_url');
+                    $isRelative = str_starts_with($imageUrl, '/') && ! str_starts_with($imageUrl, '//');
+                    $isAbsolute = filter_var($imageUrl, FILTER_VALIDATE_URL) !== false
+                        && in_array(parse_url($imageUrl, PHP_URL_SCHEME), ['http', 'https'], true);
+
+                    if (! $isRelative && ! $isAbsolute) {
+                        $validator->errors()->add('public_image_url', 'Enter an http(s) image URL or a path starting with /.');
+                    }
+                }
+                if (($this->filled('public_image_id') || $this->filled('public_image_url')) && ! $this->filled('public_image_alt')) {
+                    $validator->errors()->add('public_image_alt', 'Describe the product image for customers using assistive technology.');
                 }
             },
         ];

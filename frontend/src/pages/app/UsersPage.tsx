@@ -156,7 +156,7 @@ export default function UsersPage() {
 
         {feedback && (
           <div
-            role="status"
+            role={feedback.type === 'error' ? 'alert' : 'status'}
             className={
               feedback.type === 'error'
                 ? 'rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive'
@@ -253,10 +253,10 @@ export default function UsersPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b text-muted-foreground">
                     <tr>
-                      <th className="py-3 pr-4 font-medium">User</th>
-                      <th className="py-3 pr-4 font-medium">Role</th>
-                      <th className="py-3 pr-4 font-medium">Status</th>
-                      {canManage && <th className="py-3 font-medium text-right">Actions</th>}
+                      <th className="py-3 pr-4 font-medium" scope="col">User</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Role</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Status</th>
+                      {canManage && <th className="py-3 font-medium text-right" scope="col">Actions</th>}
                     </tr>
                   </thead>
                   <tbody>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f5f3ef"/>
+  <path d="M760 0h440v630H650z" fill="#e8e1d5"/>
+  <circle cx="920" cy="330" r="220" fill="#252825"/>
+  <circle cx="920" cy="330" r="158" fill="#f5f3ef"/>
+  <circle cx="920" cy="330" r="62" fill="#d9572b"/>
+  <text x="86" y="200" fill="#d9572b" font-family="Arial,sans-serif" font-size="28" font-weight="700" letter-spacing="5">TAZIVA MOTOR SPARES</text>
+  <text x="80" y="310" fill="#252825" font-family="Arial,sans-serif" font-size="74" font-weight="700">The right part.</text>
+  <text x="80" y="398" fill="#d9572b" font-family="Arial,sans-serif" font-size="74" font-weight="700">Back on the road.</text>
+  <text x="86" y="480" fill="#555b55" font-family="Arial,sans-serif" font-size="28">Your local motor spares partner · Rusape, Zimbabwe</text>
+</svg>

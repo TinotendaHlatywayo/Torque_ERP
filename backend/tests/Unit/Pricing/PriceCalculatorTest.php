@@ -89,6 +89,24 @@ class PriceCalculatorTest extends TestCase
         $this->assertContains('below_floor_price', $result->lines[0]->approvalReasons);
     }
 
+    public function test_floor_clamp_keeps_discount_and_cart_net_consistent(): void
+    {
+        $calculator = new PriceCalculator($this->app->make(AuditLogger::class));
+
+        $result = $calculator->calculateCart([
+            new PriceLine('product-1', 'unit-1', 'USD', 1000, '2', floorPriceMinor: 900, discountPercent: 20),
+            new PriceLine('product-2', 'unit-2', 'USD', 500, '1'),
+        ], 'USD');
+
+        $this->assertSame(200, $result->lines[0]->discountMinor);
+        $this->assertSame(1800, $result->lines[0]->netMinor);
+        $this->assertSame(2500, $result->subtotalMinor);
+        $this->assertSame(200, $result->discountMinor);
+        $this->assertSame(2300, $result->netMinor);
+        $this->assertSame($result->subtotalMinor - $result->discountMinor, $result->netMinor);
+        $this->assertSame($result->lines[0]->netMinor + $result->lines[1]->netMinor, $result->netMinor);
+    }
+
     public function test_tax_hook_is_applied_after_net_price(): void
     {
         $calculator = new PriceCalculator($this->app->make(AuditLogger::class));

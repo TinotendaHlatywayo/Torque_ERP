@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\Sale;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
@@ -51,7 +52,7 @@ final class SaleCollectionService
             ]);
         }
 
-        $requestHash = hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
+        $requestHash = $this->requestHash($payload);
 
         $existingPayment = Payment::where('branch_id', $branch->id)
             ->where('idempotency_key', $idempotencyKey)
@@ -73,7 +74,7 @@ final class SaleCollectionService
             ]);
         }
 
-        return DB::transaction(function () use ($branch, $sale, $actor, $amountMinor, $method, $currencyCode, $reference, $accountId, $idempotencyKey, $requestHash): Sale {
+        $collect = function () use ($branch, $sale, $actor, $amountMinor, $method, $currencyCode, $reference, $accountId, $idempotencyKey, $requestHash): Sale {
             $sale = Sale::where('branch_id', $branch->id)
                 ->whereKey($sale->id)
                 ->lockForUpdate()
@@ -162,6 +163,51 @@ final class SaleCollectionService
             );
 
             return $sale->load(['customer', 'items', 'payments', 'receipt']);
-        }, 3);
+        };
+
+        try {
+            return DB::transaction($collect, 3);
+        } catch (UniqueConstraintViolationException $exception) {
+            $existingPayment = Payment::where('branch_id', $branch->id)
+                ->where('idempotency_key', $idempotencyKey)
+                ->first();
+
+            if ($existingPayment) {
+                if (! hash_equals((string) $existingPayment->request_hash, $requestHash)) {
+                    throw new ConflictHttpException('The Idempotency-Key has already been used with a different collection payload.', $exception);
+                }
+
+                return $sale->load(['customer', 'items', 'payments', 'receipt']);
+            }
+
+            throw new ConflictHttpException('The collection conflicted with another concurrent request.', $exception);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function requestHash(array $payload): string
+    {
+        return hash('sha256', json_encode($this->normalizePayload($payload), JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * @param  array<mixed>  $payload
+     * @return array<mixed>
+     */
+    private function normalizePayload(array $payload): array
+    {
+        $normalized = [];
+
+        foreach ($payload as $key => $value) {
+            $normalized[$key] = is_array($value) ? $this->normalizePayload($value) : $value;
+        }
+
+        if (! array_is_list($normalized)) {
+            ksort($normalized);
+        }
+
+        return $normalized;
     }
 }

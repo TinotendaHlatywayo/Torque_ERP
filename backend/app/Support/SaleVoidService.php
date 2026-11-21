@@ -62,7 +62,7 @@ final class SaleVoidService
                     (string) $item->unit_id,
                     'Void of sale '.$sale->sale_number,
                     $actor,
-                    'void:'.$sale->id.':'.$item->product_id,
+                    'void:'.$sale->id.':'.$item->id,
                 );
             }
 

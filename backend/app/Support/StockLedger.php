@@ -133,6 +133,158 @@ final class StockLedger
         );
     }
 
+    public function postJobConsumption(
+        Branch $branch,
+        Product $product,
+        string $quantity,
+        string $unitId,
+        string $sourceId,
+        User $actor,
+        string $idempotencyKey,
+        ?string $reason = null,
+    ): StockPostingResult {
+        $unitQuantity = $this->normalizeInputQuantity($quantity);
+
+        if (bccomp($unitQuantity, '0', 4) <= 0) {
+            throw ValidationException::withMessages([
+                'quantity' => 'A job consumption quantity must be greater than zero.',
+            ]);
+        }
+
+        [$baseQuantity, $unit, $factor] = $this->convertToBase($product, $unitId, $unitQuantity);
+
+        return $this->persist(
+            branch: $branch,
+            product: $product,
+            movementType: StockMovement::TYPE_JOB_CONSUMPTION,
+            source: StockMovement::SOURCE_JOB,
+            sourceId: $sourceId,
+            reason: $this->reasonOrDefault($reason, 'Job part consumption'),
+            actor: $actor,
+            idempotencyKey: $idempotencyKey,
+            baseQuantity: bcmul($baseQuantity, '-1', 4),
+            unitQuantity: bcmul($unitQuantity, '-1', 4),
+            conversionFactor: $factor,
+            unit: $unit,
+            reverses: null,
+            openingMarker: null,
+        );
+    }
+
+    public function postTransferDispatch(
+        Branch $branch,
+        Product $product,
+        string $quantity,
+        string $unitId,
+        string $transferId,
+        string $reason,
+        User $actor,
+        string $idempotencyKey,
+    ): StockPostingResult {
+        $unitQuantity = $this->normalizeInputQuantity($quantity);
+
+        if (bccomp($unitQuantity, '0', 4) <= 0) {
+            throw ValidationException::withMessages([
+                'quantity' => 'A transfer dispatch quantity must be greater than zero.',
+            ]);
+        }
+
+        [$baseQuantity, $unit, $factor] = $this->convertToBase($product, $unitId, $unitQuantity);
+
+        return $this->persist(
+            branch: $branch,
+            product: $product,
+            movementType: StockMovement::TYPE_TRANSFER_OUT,
+            source: StockMovement::SOURCE_STOCK_TRANSFER,
+            sourceId: $transferId,
+            reason: $this->requiredReason($reason),
+            actor: $actor,
+            idempotencyKey: $idempotencyKey,
+            baseQuantity: bcmul($baseQuantity, '-1', 4),
+            unitQuantity: bcmul($unitQuantity, '-1', 4),
+            conversionFactor: $factor,
+            unit: $unit,
+            reverses: null,
+            openingMarker: null,
+        );
+    }
+
+    public function postTransferReceipt(
+        Branch $branch,
+        Product $product,
+        string $quantity,
+        string $unitId,
+        string $transferId,
+        string $reason,
+        User $actor,
+        string $idempotencyKey,
+    ): StockPostingResult {
+        $unitQuantity = $this->normalizeInputQuantity($quantity);
+
+        if (bccomp($unitQuantity, '0', 4) <= 0) {
+            throw ValidationException::withMessages([
+                'quantity' => 'A transfer receipt quantity must be greater than zero.',
+            ]);
+        }
+
+        [$baseQuantity, $unit, $factor] = $this->convertToBase($product, $unitId, $unitQuantity);
+
+        return $this->persist(
+            branch: $branch,
+            product: $product,
+            movementType: StockMovement::TYPE_TRANSFER_IN,
+            source: StockMovement::SOURCE_STOCK_TRANSFER,
+            sourceId: $transferId,
+            reason: $this->requiredReason($reason),
+            actor: $actor,
+            idempotencyKey: $idempotencyKey,
+            baseQuantity: $baseQuantity,
+            unitQuantity: $unitQuantity,
+            conversionFactor: $factor,
+            unit: $unit,
+            reverses: null,
+            openingMarker: null,
+        );
+    }
+
+    public function postStocktakeAdjustment(
+        Branch $branch,
+        Product $product,
+        string $quantity,
+        string $unitId,
+        string $stocktakeLineId,
+        string $reason,
+        User $actor,
+        string $idempotencyKey,
+    ): StockPostingResult {
+        $unitQuantity = $this->normalizeInputQuantity($quantity);
+
+        if (bccomp($unitQuantity, '0', 4) === 0) {
+            throw ValidationException::withMessages([
+                'quantity' => 'A stocktake adjustment must change stock by a non-zero quantity.',
+            ]);
+        }
+
+        [$baseQuantity, $unit, $factor] = $this->convertToBase($product, $unitId, $unitQuantity);
+
+        return $this->persist(
+            branch: $branch,
+            product: $product,
+            movementType: StockMovement::TYPE_CORRECTION,
+            source: StockMovement::SOURCE_STOCKTAKE,
+            sourceId: $stocktakeLineId,
+            reason: $this->requiredReason($reason),
+            actor: $actor,
+            idempotencyKey: $idempotencyKey,
+            baseQuantity: $baseQuantity,
+            unitQuantity: $unitQuantity,
+            conversionFactor: $factor,
+            unit: $unit,
+            reverses: null,
+            openingMarker: null,
+        );
+    }
+
     public function reverse(
         Branch $branch,
         StockMovement $movement,
@@ -283,6 +435,10 @@ final class StockLedger
                     throw new ConflictHttpException('Insufficient stock: the posting would make quantity on hand negative.');
                 }
 
+                if (bccomp($balanceAfter, (string) $level->quantity_reserved, 4) < 0) {
+                    throw new ConflictHttpException('Insufficient available stock: some units are held for customer reservations.');
+                }
+
                 $movement = StockMovement::create([
                     'branch_id' => $branch->id,
                     'product_id' => $currentProduct->id,
@@ -344,9 +500,9 @@ final class StockLedger
             ]);
         }
 
-        if (! $product->is_active && in_array($movementType, [StockMovement::TYPE_OPENING, StockMovement::TYPE_SALE], true)) {
+        if (! $product->is_active && in_array($movementType, [StockMovement::TYPE_OPENING, StockMovement::TYPE_SALE, StockMovement::TYPE_JOB_CONSUMPTION], true)) {
             throw ValidationException::withMessages([
-                'product_id' => 'Stock cannot be opened or sold for an archived product.',
+                'product_id' => 'Stock cannot be opened, sold or consumed for an archived product.',
             ]);
         }
     }

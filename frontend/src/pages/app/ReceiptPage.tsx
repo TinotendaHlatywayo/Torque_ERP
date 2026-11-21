@@ -27,12 +27,14 @@ export default function ReceiptPage() {
     enabled: Boolean(branchId && saleId),
   })
 
+  const verificationBase = (api.defaults.baseURL || window.location.origin).replace(/\/$/, '')
+  const verificationUrl = saleQuery.data ? `${verificationBase}/api/verify/receipt/${saleQuery.data.id}` : ''
+
   useEffect(() => {
-    const url = saleQuery.data ? `${window.location.origin}/api/verify/receipt/${saleQuery.data.id}` : ''
-    if (canvasRef.current && url) {
-      void QRCode.toCanvas(canvasRef.current, url, { width: 128 })
+    if (canvasRef.current && verificationUrl) {
+      void QRCode.toCanvas(canvasRef.current, verificationUrl, { width: 128 })
     }
-  }, [saleQuery.data])
+  }, [verificationUrl])
 
   if (!meQuery.data) {
     return (
@@ -74,7 +76,6 @@ export default function ReceiptPage() {
   }
 
   const sale = saleQuery.data
-  const verificationUrl = sale ? `${window.location.origin}/api/verify/receipt/${sale.id}` : ''
 
   return (
     <AppShell>
@@ -100,9 +101,9 @@ export default function ReceiptPage() {
               <table className="w-full text-left text-sm">
                 <thead className="border-b text-muted-foreground">
                   <tr>
-                    <th className="py-2 pr-4 font-medium">Item</th>
-                    <th className="py-2 pr-4 font-medium">Qty</th>
-                    <th className="py-2 pr-4 font-medium">Total</th>
+                    <th className="py-2 pr-4 font-medium" scope="col">Item</th>
+                    <th className="py-2 pr-4 font-medium" scope="col">Qty</th>
+                    <th className="py-2 pr-4 font-medium" scope="col">Total</th>
                   </tr>
                 </thead>
                 <tbody>

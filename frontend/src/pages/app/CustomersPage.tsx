@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react'
+import { FormEvent, useDeferredValue, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/button'
@@ -31,6 +31,7 @@ export default function CustomersPage() {
   const canManage = branch?.permissions.includes('branch.customers.manage') ?? false
 
   const [search, setSearch] = useState('')
+  const deferredSearch = useDeferredValue(search)
   const [status, setStatus] = useState('active')
   const [page, setPage] = useState(1)
   const perPage = 25
@@ -41,11 +42,11 @@ export default function CustomersPage() {
   const [duplicateCandidates, setDuplicateCandidates] = useState<Customer[]>([])
 
   const customersQuery = useQuery({
-    queryKey: ['customers', branchId, { search, status, page, perPage }],
+    queryKey: ['customers', branchId, { search: deferredSearch, status, page, perPage }],
     queryFn: async () => {
       const response = await api.get<CustomerListResponse>(`/api/branches/${branchId}/customers`, {
         params: {
-          q: search || undefined,
+          q: deferredSearch || undefined,
           status,
           page,
           per_page: perPage,
@@ -185,7 +186,7 @@ export default function CustomersPage() {
 
         {feedback && (
           <div
-            role="status"
+            role={feedback.type === 'error' ? 'alert' : 'status'}
             className={
               feedback.type === 'error'
                 ? 'rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive'
@@ -345,10 +346,10 @@ export default function CustomersPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b text-muted-foreground">
                     <tr>
-                      <th className="py-3 pr-4 font-medium">Name</th>
-                      <th className="py-3 pr-4 font-medium">Contact</th>
-                      <th className="py-3 pr-4 font-medium">Status</th>
-                      {canManage && <th className="py-3 font-medium text-right">Actions</th>}
+                      <th className="py-3 pr-4 font-medium" scope="col">Name</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Contact</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Status</th>
+                      {canManage && <th className="py-3 font-medium text-right" scope="col">Actions</th>}
                     </tr>
                   </thead>
                   <tbody>

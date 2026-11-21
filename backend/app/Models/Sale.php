@@ -82,4 +82,9 @@ class Sale extends Model
     {
         return $this->belongsTo(User::class, 'voided_by');
     }
+
+    public function job(): HasOne
+    {
+        return $this->hasOne(ServiceJob::class, 'sale_id');
+    }
 }

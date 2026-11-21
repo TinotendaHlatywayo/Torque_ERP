@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout/AppShell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,8 +14,16 @@ export default function SyncCenterPage() {
   const [deviceId, setDeviceId] = useState('device-1')
   const [online, setOnline] = useState(navigator.onLine)
 
-  window.addEventListener('online', () => setOnline(true))
-  window.addEventListener('offline', () => setOnline(false))
+  useEffect(() => {
+    const handleOnline = () => setOnline(true)
+    const handleOffline = () => setOnline(false)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
   const statusQuery = useQuery({
     queryKey: ['sync-status', branchId, deviceId],
@@ -126,11 +134,11 @@ export default function SyncCenterPage() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b text-muted-foreground">
                     <tr>
-                      <th className="py-3 pr-4 font-medium">Operation</th>
-                      <th className="py-3 pr-4 font-medium">Type</th>
-                      <th className="py-3 pr-4 font-medium">Status</th>
-                      <th className="py-3 pr-4 font-medium">Client time</th>
-                      <th className="py-3 font-medium">Error</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Operation</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Type</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Status</th>
+                      <th className="py-3 pr-4 font-medium" scope="col">Client time</th>
+                      <th className="py-3 font-medium" scope="col">Error</th>
                     </tr>
                   </thead>
                   <tbody>

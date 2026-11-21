@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCustomerRequest extends FormRequest
 {
@@ -32,6 +33,16 @@ class UpdateCustomerRequest extends FormRequest
         if (is_string($this->input('notes'))) {
             $this->merge(['notes' => trim($this->input('notes')) === '' ? null : trim($this->input('notes'))]);
         }
+
+        if (is_string($this->input('marketing_consent_at'))) {
+            $value = trim($this->input('marketing_consent_at'));
+            $this->merge(['marketing_consent_at' => $value === '' ? null : $value]);
+        }
+
+        if (is_string($this->input('marketing_channel'))) {
+            $value = trim($this->input('marketing_channel'));
+            $this->merge(['marketing_channel' => $value === '' ? null : $value]);
+        }
     }
 
     /**
@@ -46,6 +57,13 @@ class UpdateCustomerRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:5000'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'is_active' => ['sometimes', 'boolean'],
+            'marketing_consent_at' => ['nullable', 'date'],
+            'marketing_channel' => [
+                'nullable',
+                'string',
+                Rule::in(config('loyalty.marketing_channels')),
+            ],
+            'marketing_channel_active' => ['sometimes', 'boolean'],
         ];
     }
 }

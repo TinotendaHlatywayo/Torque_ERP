@@ -209,7 +209,7 @@ export default function ProductsPage() {
 
         {feedback && (
           <div
-            role="status"
+            role={feedback.type === 'error' ? 'alert' : 'status'}
             className={
               feedback.type === 'error'
                 ? 'rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive'
@@ -409,13 +409,13 @@ export default function ProductsPage() {
                     <table className="w-full text-left text-sm">
                       <thead className="border-b text-muted-foreground">
                         <tr>
-                          <th className="py-3 pr-4 font-medium">Product</th>
-                          <th className="py-3 pr-4 font-medium">Category</th>
-                          <th className="py-3 pr-4 font-medium">Unit</th>
-                          <th className="py-3 pr-4 font-medium">Price</th>
-                          <th className="py-3 pr-4 font-medium">Stock</th>
-                          <th className="py-3 pr-4 font-medium">Status</th>
-                          <th className="py-3 text-right font-medium">Actions</th>
+                          <th className="py-3 pr-4 font-medium" scope="col">Product</th>
+                          <th className="py-3 pr-4 font-medium" scope="col">Category</th>
+                          <th className="py-3 pr-4 font-medium" scope="col">Unit</th>
+                          <th className="py-3 pr-4 font-medium" scope="col">Price</th>
+                          <th className="py-3 pr-4 font-medium" scope="col">Stock</th>
+                          <th className="py-3 pr-4 font-medium" scope="col">Status</th>
+                          <th className="py-3 text-right font-medium" scope="col">Actions</th>
                         </tr>
                       </thead>
                       <tbody>

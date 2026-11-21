@@ -1,0 +1,569 @@
+TMS / TorqueERP IMPLEMENTATION CHECKLIST
+Generated: 2026-11-21
+Updated: 2026-11-21 after full-system audit, two fix passes, and comprehensive demo seed expansion.
+Source: original user prompt plus current repository audit.
+
+LEGEND
+[x] Implemented / working behavior with code and tests or clear wiring.
+[~] Partial / foundation exists, but incomplete, frontend missing, or documented only.
+[ ] Not implemented / not found in the current repository.
+
+IMPORTANT READING RULE
+A backend API alone is marked [~] when the user-facing page is missing.
+A static mockup is not counted as the implemented system.
+Production release is still BLOCKED: see docs/RELEASE_CHECKLIST.md.
+
+=====================================================================
+1. HIGH-LEVEL SUMMARY
+=====================================================================
+[x] Laravel backend + TypeScript React frontend.
+[x] Branch-based multi-tenancy with branch_id, branch middleware, and platform layer.
+[x] Large backend ERP/POS surface: sales, stock, finance, HR, payroll, CMS, tasks, notifications, workshop, assets, loyalty.
+[x] Strict backend permission catalog and default roles/permissions.
+[x] Strong automated backend test suite and extensive technical docs.
+[x] Public marketing/catalogue/reservation API and React storefront are wired.
+[x] Bootstrap seeder creates only platform, main branch, admin login and membership; business data comes from Demo Seed or manual entry.
+[x] Demo seed now covers sales, stock movements, finance, HR/payroll, staff users, workshop, stocktake/transfer, assets, loyalty, CMS, reservations, tasks and audit history.
+[x] Demo wipe returns the branch to an empty business state, including removal of the demo destination branch; platform/admin/audit history remain.
+[x] Seeded sales/stock/cash history clears Inventory Intelligence and Cash Forecast data-quality warnings; local dashboard v2 reports PASS with zero warnings.
+
+[x] POS frontend can post sales with payments, idempotency key, cache invalidation, and receipt navigation.
+[x] Offline sync API applies operations server-side and replays by operation_id.
+[x] Themes are mounted in app shell: light, dark, solarized, with visible selector.
+[x] Six locale catalogues and a visible locale switcher are wired.
+[x] In-app Help button, audit log API/pages, and current-page CSV export exist.
+[x] Original public brand colors are applied: teal #078878, dark #172a32, off-white #f5f8f7.
+
+[~] Frontend still has read-only/preview modules outside POS and audit.
+[~] Browser-side offline storage/outbox is still not implemented.
+[~] Platform admin UI is improved but still partial.
+[~] Public website/CMS/SEO still misses several requested marketing features.
+[~] Customization for non-automotive industries is not complete.
+[ ] No full Excel/PDF export framework for every module.
+[ ] No module manager/feature flags.
+[ ] No top-bar clock/task/notification modal and calendar workflow.
+[ ] No infinite brand marquee, car-part scroll animation, frame ZIP upload, contact form, or social media manager.
+
+=====================================================================
+2. STACK, LOCAL TESTING, ARCHITECTURE
+=====================================================================
+[x] Laravel backend.
+    Evidence: backend/composer.json; backend/app; backend/routes/api.php.
+
+[x] TypeScript + React frontend.
+    Evidence: frontend/package.json; frontend/src.
+
+[x] Vite build, React Router, TanStack Query, Axios, Tailwind.
+    Evidence: frontend/package.json:14-40; frontend/src/router.tsx; frontend/src/lib/api.ts.
+
+[~] .lvh.me local testing.
+    Evidence: docs mention tms.lvh.me, but repo notes tms.lvh.me resolved elsewhere/404 in local notes.
+    Gap: no repeatable local certificate/host bootstrap script verified.
+
+[x] API-first architecture suitable for future Android/desktop apps.
+    Evidence: backend/routes/api.php; frontend/src/lib/api.ts.
+
+[~] Future Android/desktop readiness.
+    Has REST API and auth foundation, but no native clients or API versioning contract beyond current /api routes.
+
+[x] One H1 per routed page.
+    Evidence: frontend/src/router.tsx; page components each render one H1 via page or shells.
+    Note: frontend/src/App.tsx has an unused H1 but is not routed.
+
+[~] Familiar UX.
+    Has common sidebar/nav, tables, forms, cards, and status messages.
+    Gap: not validated with real users; component library is thin.
+
+[~] Popular React component libraries.
+    Tailwind/React Query/React Router are used.
+    Gap: no Origin UI/OriginKit photo component or equivalent rich media kit found.
+
+[~] Professional visible font system.
+    Static TMS_Homepage.html defines Inter.
+    Gap: frontend app does not load/use a distinctive configured font family globally.
+
+[~] Related features grouped into modules.
+    Backend modules and frontend nav groups exist conceptually.
+    Gap: not consistently presented as chrome-style module tabs.
+
+[~] Fully customizable for other industries such as hardware.
+    Generic catalogue, customers, stock, finance, and settings foundations exist.
+    Gap: car-part/fitment wording, demo data, and public-site copy remain strongly domain-specific; no full industry profile/field/label/workflow configurator.
+
+=====================================================================
+3. RBAC, ROLES, PERMISSIONS, SUPER ADMINS
+=====================================================================
+[x] Strict backend RBAC with default-deny permission middleware.
+    Evidence: backend/app/Support/Permissions.php; backend/app/Support/Roles.php; backend/app/Http/Middleware/EnsureBranchPermission.php.
+
+[x] Default ERP roles and permissions.
+    Evidence: backend/app/Support/Roles.php; backend/app/Support/Permissions.php.
+
+[x] Branch user management and role assignment.
+    Evidence: backend/app/Http/Controllers/Api/BranchUserController.php; frontend/src/pages/app/UsersPage.tsx.
+
+[x] Backend supports per-membership permission overrides.
+    Evidence: backend/app/Http/Controllers/Api/BranchUserController.php:87,95,163-165,257-258; backend/app/Models/BranchUser.php.
+
+[~] Permission UX via checkboxes.
+    Only user active checkbox and role dropdown exist in frontend/src/pages/app/UsersPage.tsx:273-298.
+    Gap: no checkbox matrix to edit role permissions or per-user permissions.
+
+[ ] Create custom roles from UI.
+[ ] Rename default roles from UI.
+[ ] Modify default role permission set from UI.
+[ ] Dedicated page-level create/read/update/delete permission editor.
+    Backend has broad view/manage/approve/export permissions but not user-friendly CRUD checkbox UI for every page.
+
+[x] Dashboard permissions enforced on backend config endpoint.
+    Evidence: frontend/src/pages/app/DashboardPage.tsx:25-27; backend dashboard endpoint.
+
+[~] Multiple super admins.
+    Backend user has is_platform_admin flag; seeder creates one.
+    Gap: no verified UI/API flow for an existing super admin to register another super admin.
+
+[x] Platform access endpoint exposes platform admin status and permissions.
+    Evidence: backend/app/Http/Controllers/Api/PlatformAccessController.php.
+
+=====================================================================
+4. MULTI-BRANCH AND PLATFORM CONSOLE
+=====================================================================
+[x] Single-database branch_id tenancy.
+    Evidence: backend/app/Http/Middleware/ResolveBranchContext.php; backend/routes/api.php branch-scoped routes; migrations with branch_id.
+
+[x] Branch context is route-authoritative and membership-aware.
+    Evidence: backend/app/Http/Middleware/ResolveBranchContext.php:24-52; tests/Feature/Tenancy/BranchContextTest.php.
+
+[x] Platform branch lifecycle API: create, approve, suspend, activate, archive.
+    Evidence: backend/app/Http/Controllers/Api/PlatformBranchController.php; backend/routes/api.php:504-517.
+
+[x] Cross-branch report API and private CSV export.
+    Evidence: backend/app/Http/Controllers/Api/PlatformReportController.php; tests/Feature/Platform/PlatformReportTest.php.
+
+[~] Platform analytics UI.
+    Frontend /platform is a stub with text only.
+    Evidence: frontend/src/pages/platform/LandingPage.tsx:1-30.
+    Gap: no branch comparison plots, revenue/expense/performance charts, or selected-branch report builder UI.
+
+[~] "All possible reports" with many predesigned templates.
+    Only finance-oriented comparison reports/CSV export found.
+    Gap: no extensive report template library covering all aspects.
+
+[~] Production MySQL host/TLS.
+    Default DB config is sqlite; docs/RELEASE_CHECKLIST.md records production host/TLS BLOCKED.
+
+=====================================================================
+5. OFFLINE, SYNC, CONFLICTS
+=====================================================================
+[x] Offline sync API with idempotent operation_id, branch auth, and status endpoints.
+    Evidence: backend/app/Http/Controllers/Api/SyncController.php; backend/docs/SYNC_API.md; tests/Feature/Sync/SyncTest.php.
+
+[x] Sync operation schema with timestamps and unique operation id.
+    Evidence: backend/database/migrations/2026_10_30_230000_create_sync_operations_table.php.
+
+[x] Server-side replay/apply of synced operations.
+    Evidence: backend/app/Support/SyncOperationProcessor.php; tests/Feature/Sync/*.
+
+[~] Conflict strategy/timestamps.
+    Conventions documented in docs/SCHEMA_CONVENTIONS.md and idempotency is implemented.
+    Gap: no implemented server conflict detection/resolution or last-writer/version strategy for domain writes.
+
+[ ] Browser-side SQLite/IndexedDB local store.
+    Evidence: frontend/src/lib/offline.ts is types only; frontend/package.json has no Dexie/SQLite dependency.
+    Gap: docs/OFFLINE_STORAGE.md describes a design, not implemented code.
+
+[ ] Users can perform all operations offline.
+[ ] Local outbox queue with retry and conflict UI.
+[ ] Auto-sync when online.
+[ ] Manual "Sync now" button that actually uploads queued offline operations.
+    frontend/src/pages/app/SyncCenterPage.tsx only lists remote sync status.
+
+[~] Future native app compatibility.
+    API exists, but no mobile/desktop sync client exists.
+
+=====================================================================
+6. PUBLIC WEBSITE, CONTENT MANAGER, SEO, MEDIA
+=====================================================================
+[x] Public Laravel SEO routes: home, shop, category, product, reserve, reservation status, robots, sitemap, CMS catchall.
+    Evidence: backend/routes/web.php:12-78.
+
+[x] Public JSON API for React storefront.
+    Evidence: backend/routes/api.php:71-91; backend/app/Http/Controllers/Api/PublicSiteController.php.
+
+[x] React public pages: home, shop, category, product, reservation, reservation status, CMS page, 404.
+    Evidence: frontend/src/router.tsx; frontend/src/pages/public/*.
+
+[x] Public shell with responsive nav, skip link, mobile menu, footer.
+    Evidence: frontend/src/components/layout/PublicShell.tsx.
+
+[x] CMS page/version/publish/rollback/media backend.
+    Evidence: backend/app/Http/Controllers/Api/CmsContentController.php; backend/tests/Feature/CmsContentTest.php.
+
+[x] CMS live preview/publish UI.
+    Evidence: frontend/src/pages/platform/ContentPage.tsx.
+
+[x] WebP/AVIF generation for CMS media.
+    Evidence: backend/app/Support/CmsImageProcessor.php:35-67.
+
+[~] "All uploaded photos converted to WebP".
+    CMS images generate variants.
+    Gap: no evidence that every product/avatar/asset upload is globally converted.
+
+[x] SEO extended metadata and tests on Laravel public pages.
+    Evidence: backend/tests/Feature/PublicSeoTest.php; backend/resources/views/public/home.blade.php.
+
+[x] React public page metadata hook.
+    Evidence: frontend/src/hooks/usePageMeta.ts; calls in all public pages.
+
+[~] React public SEO completeness.
+    Has title/description/OG/Twitter card.
+    Gap: no canonical URL, og:image, JSON-LD, robots directives, SSR/prerender in SPA shell.
+
+[~] CMS fields prefilled with exact website text/images.
+    CMS exists; template/page seeding completeness not verified.
+    Gap: no evidence all marketing fields are prepopulated with real, relevant copy and images.
+
+[~] Home/about/contact pages.
+    CMS can serve arbitrary slugs.
+    Gap: no verified seeded Home/About/Contact content set in the implemented public site.
+
+[ ] Marketing contact form.
+[ ] Social media links configured through platform (WhatsApp/Facebook/Instagram/TikTok).
+[ ] Infinite marquee/stats ticker with car brand logos.
+[ ] Mouse hover and scroll-triggered car-parts-detaching background animation.
+[ ] ZIP frame upload with transparency adjustment for homepage.
+[ ] Single static image fallback for that homepage frame feature.
+
+[~] Features from TMS_Homepage.html carried into system.
+    Implemented site has hero, categories, products, reservations, responsive nav.
+    Gap: not using requested original colour palette and missing original search bar, brand strip, workshop story, quote/contact modal, WhatsApp float, and several visual treatments.
+    Original palette: --site-primary #078878, --site-secondary #172a32, --site-background #f5f8f7 (TMS_Homepage.html:7-13).
+    Implemented public site currently uses slate/red palette, so this is a mismatch.
+
+[~] Login from public website.
+    Same /login route and API flow exist.
+    Gap: credential-based auto-detection is based on returned user/branches/platform permissions, not a distinct visible branch-detection UX.
+
+[ ] Login page animations.
+
+=====================================================================
+7. POS, SALES, RETURNS, CUSTOMERS, LOYALTY
+=====================================================================
+[x] Backend checkout, payments, sales, receivables, voids, returns.
+    Evidence: backend/app/Http/Controllers/Api/CheckoutController.php; backend/app/Support/CheckoutService.php; backend/app/Support/SaleReturnService.php; backend/routes/api.php:152-173.
+
+[x] Customer records and loyalty backend.
+    Evidence: backend/routes/api.php:328-354; backend/app/Http/Controllers/Api/CustomerController.php; Loyalty controllers/services.
+
+[x] Loyalty UI.
+    Evidence: frontend/src/pages/app/LoyaltyPage.tsx.
+
+[x] Sales history and receipt UI.
+    Evidence: frontend/src/pages/app/SalesHistoryPage.tsx; frontend/src/pages/app/ReceiptPage.tsx.
+
+[x] POS frontend.
+    Evidence: frontend/src/pages/app/PosPage.tsx posts checkout with payment, idempotency key, validation, cache invalidation, and receipt navigation.
+    Gap: scanner input, split payments, touch/mouse mode, and most-sold tiles remain.
+
+[x] Discounts percentage/fixed with authorized approval.
+    Evidence: CheckoutService now requires branch.sales.approve_override for approval-required carts; audit records the approver.
+    Gap: configurable threshold in frontend/lib/pricing.ts is still frontend-side.
+
+[ ] Most-sold quick-access tiles in POS.
+[ ] Mouse mode and large-button touch mode toggle.
+[ ] Split payment UI for USD/ZiG cash, EcoCash, swipe, bank transfer.
+[ ] POS product card showing logo fallback, low-stock colour states, specs, description, and stock count.
+[ ] Fuzzy typo search such as "toyoa" matching "toyota" in POS.
+
+[x] Returns backend recalculates, restores stock, records refund, and is idempotent on approval.
+    Evidence: SaleReturnService approve endpoint and tests/Feature/Sales/SaleReturnApprovalTest.php.
+
+[~] Returns frontend.
+    Exists but only targets the first sale item in frontend/src/pages/app/SalesHistoryPage.tsx:75-81.
+    Gap: full multi-item return workflow missing.
+
+[~] Customer directory table.
+    Customers list/create/edit exists.
+    Gap: requested columns such as geographic location, outstanding balance, badge, and detailed activity/export are not all present in the UI.
+
+[~] Customer buying history/badge rules/winback.
+    Backend loyalty config, qualifications, sale events, and winback candidates exist.
+    Gap: automated messages/calls/campaign delivery are future work.
+
+[x] Workshop services/jobs backend + frontend.
+    Evidence: backend/routes/api.php services/jobs routes; frontend/src/pages/app/JobsPage.tsx.
+
+=====================================================================
+8. ONLINE STORE / RESERVATIONS
+=====================================================================
+[x] Public product browse/detail with image, price, description, availability flag.
+    Evidence: frontend/src/pages/public/ShopPage.tsx; ProductPage.tsx; backend PublicSiteController.
+
+[x] Public reservation start/create/status/cancel.
+    Evidence: backend/app/Support/ReservationService.php; frontend/src/pages/public/ReservationPage.tsx; ReservationStatusPage.tsx.
+
+[x] Short stock hold with expiry and cancellation.
+    Evidence: tests/Feature/PublicReservationTest.php.
+
+[x] Paynow checkout initiation/callback handling with hash validation.
+    Evidence: backend/app/Support/PaynowGateway.php; PaynowResultController; tests/Feature/Externals/PaynowWebhookReliabilityTest.php.
+
+[x] Reservation notifications.
+    Evidence: backend/app/Jobs/SendReservationNotification.php; tests/Feature/ReservationNotificationTest.php.
+
+[~] EcoCash-only payment requirement.
+    Implementation uses Paynow gateway.
+    Gap: no explicit EcoCash-only selector or direct EcoCash flow found.
+
+[ ] Shopping cart with finalize button.
+[ ] Customer selects from multiple branches.
+[ ] Collection day and estimated collection time.
+[ ] Deposit/full payment with platform-configured minimum deposit percentage.
+[ ] Online service booking with reserved time slot.
+[ ] Exact specification/fitment selection on storefront, e.g. GD6 spark plug.
+[ ] Branch notification UI for finalized web orders beyond reservations list.
+
+=====================================================================
+9. INVENTORY, STOCK, ASSETS
+=====================================================================
+[x] Product/category/unit CRUD.
+    Evidence: backend/routes/api.php:113-150; frontend/src/pages/app/ProductsPage.tsx.
+
+[x] Stock levels, movements, transfers, stocktakes.
+    Evidence: backend/app/Support/StockLedger.php; StockTransferService; StocktakeService; frontend/src/pages/app/StockPage.tsx; TransfersPage.tsx.
+
+[x] Canonical stock ledger with reversals/auditing.
+    Evidence: backend/app/Support/StockLedger.php; finance/inventory tests.
+
+[x] Company assets backend + frontend.
+    Evidence: backend/routes/api.php assets routes; frontend/src/pages/app/AssetsPage.tsx.
+
+[x] Inventory intelligence dashboard.
+    Evidence: frontend/src/pages/app/InventoryIntelligencePage.tsx; frontend/src/components/ui/IntelligenceCharts.tsx.
+
+[~] Inventory filters.
+    Product search/filter exists.
+    Gap: requested filters for brand, type, stock status, and rich descriptor columns are not fully present.
+
+[~] SKU behaviour.
+    SKU is required and editable.
+    Gap: not auto-generated by system as requested.
+
+[~] Stock correction as expense/restock.
+    Stock movements and finance services exist.
+    Gap: automatic expense posting for restock and two-option restock/remove UI with comment not verified.
+
+[ ] Excel/CSV product import with template download, 3 sample rows, bold required columns, frontend validation.
+[ ] Excel/PDF inventory export.
+[ ] Inventory items as chrome-style tabs with clearly labeled page titles.
+
+[~] POS low-stock alerts.
+    Backend/dashboard has low-stock data.
+    Gap: POS card colour states and visual alerts not implemented.
+
+[ ] Company logo fallback for missing product images.
+
+[ ] Typo-tolerant character search such as "toyoa" -> "toyota".
+
+=====================================================================
+10. FINANCE, EXPENSES, REPORTS, DOCUMENTS
+=====================================================================
+[x] Finance backend: payment accounts, money movements, transfers, reversals, expenses, supplier bills, ageing, FX, metrics.
+    Evidence: backend/routes/api.php:348-408; backend/app/Support/FinanceMetricsService.php; tests/Feature/Finance/*.
+
+[x] Payroll salaries flow into finance/payroll ledger.
+    Evidence: backend/app/Support/PayrollEngine.php; PayrollPaymentService.
+
+[~] Finance frontend.
+    No dedicated expenses/finance module page in frontend router/nav.
+    Finance-related cards exist on dashboard only.
+    Evidence: frontend/src/router.tsx; frontend/src/components/layout/AppShell.tsx:11-31.
+
+[~] Dedicated expenses page with paid/unpaid default paid.
+    Backend expenses exist; frontend page not found.
+
+[~] Financial statement for custom range.
+    Backend reports/metrics exist; UI report builder missing.
+
+[~] Sales reports, profit/day ranges, custom range, export.
+    Backend sales/report endpoints and CSV export exist.
+    Gap: polished actual report UI and Excel/PDF exports missing.
+
+[ ] Import sales from Excel with downloadable 3-row template.
+
+[x] Document template backend: versions, placeholders, preview, active template per type, sequence, verification.
+    Evidence: backend/app/Support/DocumentTemplateService.php; backend/app/Http/Controllers/Api/DocumentTemplateController.php; tests/Feature/Documents/DocumentTemplateTest.php.
+
+[x] Live document preview support in backend service.
+    Evidence: DocumentTemplateService::preview.
+
+[~] Ten professional prebuilt templates.
+    Template engine exists, but ten professional invoice/receipt/quotation presets are not evidenced.
+
+[ ] Frontend finance document template editor screen.
+[ ] Full "edit every section" visual customization matching the supplied example.
+[ ] Quotation-specific full workflow in UI.
+
+[~] Interactive finance analytics.
+    Dashboard charts exist.
+    Gap: no dedicated finance analytics page with histograms, table/cards/bar/line/pie and all interactive visuals.
+
+[x] Audit logging.
+    Evidence: AuditLogController branch/platform endpoints, frontend audit pages, and tests/Feature/AuditLogEndpointTest.php.
+
+[x] Audit log table with Timestamp, Administrator, Action, Module, IP, Outcome, device details.
+    Evidence: frontend/src/components/audit/AuditLogTable.tsx shows filters, pagination, detail expansion, and CSV export.
+[~] Audit export as designed Excel/PDF.
+    Current export is CSV of the current page.
+
+=====================================================================
+11. HR, PAYROLL, TASKS, NOTIFICATIONS
+=====================================================================
+[x] Staff directory / employees backend + frontend.
+    Evidence: backend routes 174-229; frontend/src/pages/app/EmployeesPage.tsx.
+
+[x] Disciplinary records with required statuses including Under Investigation, Warning Issued, Suspended, Terminated, Exonerated.
+    Evidence: backend/app/Models/DisciplinaryRecord.php; frontend/src/pages/app/HrRecordsPage.tsx.
+
+[x] Leave requests and attendance.
+    Evidence: backend/routes/api.php leave/attendance routes; frontend/src/pages/app/HrRecordsPage.tsx.
+
+[ ] Bulk delete and bulk activation email action for staff.
+
+[x] Payroll backend: periods, salary grades, components, statutory rules, loans, runs, approvals, payslips, payments, adjustments.
+    Evidence: backend/routes/api.php:230-305; backend/app/Support/PayrollEngine.php.
+
+[x] Payroll frontend.
+    Evidence: frontend/src/pages/app/PayrollPage.tsx:198-354.
+
+[~] Payroll statutory/tax/leave-pay correctness.
+    Explicitly BLOCKED pending owner/professional sign-off in backend/config/torqueerp.php.
+
+[~] Staff loan form detail.
+    Backend loans exist.
+    Gap: full supplied workflow with bank account funding, interest system choice, deduction basis, and "create & create another" not fully evidenced in UI.
+
+[x] Task lifecycle backend + Tasks page.
+    Evidence: backend/routes/api.php:306-327; frontend/src/pages/app/TasksPage.tsx.
+
+[x] Notification backend, preferences, and queued delivery.
+    Evidence: backend/app/Support/NotificationService.php; SendTaskNotification; NotificationPreference.
+
+[ ] Top-bar live clock pill (MMM DD HH:mm) next to profile badge.
+[ ] Tier-1 dual-panel Task Manager & Notification Center modal with time filter tabs.
+[ ] Do Not Disturb toggle, Clear All/Clear Notifications/History actions.
+[ ] Interactive monthly operational calendar with day details.
+[ ] Tier-2 date-specific Task/Event creation modal.
+[ ] Permission-gated "Assign To" searchable user selector in that modal.
+
+=====================================================================
+12. DASHBOARD AND VISUALIZATION
+=====================================================================
+[x] Dashboard endpoint and frontend.
+    Evidence: frontend/src/pages/app/DashboardPage.tsx:29-36; backend dashboard route.
+
+[x] Permission-aware dashboard data.
+    Evidence: DashboardPage.tsx:25-27.
+
+[x] Larger cards and larger important plots.
+    Evidence: DashboardPage.tsx uses varied grid spans/chart sizes; visual QA not fully verified in browser.
+
+[x] Low stock, recent sales/services/invoices style data, top products, sales trend, finance metrics.
+    Evidence: backend dashboard service and frontend DashboardPage/IntelligenceCharts.
+    Note: exact labels from prompt are not all aligned one-for-one.
+
+[~] Yearly 12-month composite ledger with all requested toggles.
+    Backend finance metrics exist.
+    Gap: exact composite visualization with Invoiced/Collected/Expenses/Gross Profit/Net Profit toggle not verified.
+
+[~] Total Customers Directory card/page.
+    Customers page exists; dashboard summary card not clearly found.
+
+[~] Interactive plots.
+    Charts use accessible CSS/SVG-style visuals.
+    Gap: no confirmed rich interactivity library/tooltips across all charts.
+
+=====================================================================
+13. BRANDING, THEMES, LANGUAGES, SETTINGS, PROFILE
+=====================================================================
+[x] Basic settings API for scoped branch/platform settings.
+    Evidence: backend/app/Http/Controllers/Api/SettingController.php.
+
+[~] Settings value allowlist.
+    Only registration_notes is allowed in backend/app/Support/SettingService.php:14-20.
+
+[x] Light/dark/solarized themes.
+    Evidence: ThemeProvider mounted in main.tsx; ThemeContext supports all three; AppShell has a theme selector; index.css defines .solarized.
+
+[x] Localization.
+    Evidence: LocaleProvider mounted in main.tsx; six catalogues (en, sn, nd, af, fr, pt) and a locale switcher in AppShell.
+    Gap: Laravel-side language files and full UI string coverage remain.
+
+[ ] Platform logo/favicon/background/font style/font size/size controls.
+[ ] Footer & branding settings page.
+[ ] Institution/company profile settings page.
+[ ] Manage Modules page.
+[ ] Feature Flags page.
+[ ] Banking & Payments settings UI.
+[ ] Authentication & Security settings UI.
+[ ] System Preferences UI.
+[ ] Legal & Terms UI.
+[ ] Email Configuration UI.
+
+[~] Notification preferences.
+    Backend API and Tasks page preferences exist.
+    Gap: no broad settings page.
+
+[ ] Profile page matching supplied example: welcome, email, active status, member since, last login, role, display username, password change, session activity.
+
+=====================================================================
+14. DOCUMENTATION AND IN-APP HELP
+=====================================================================
+[x] Extensive technical/spec docs exist.
+    Evidence: docs/REQUIREMENTS_TRACEABILITY.md; docs/DECISIONS.md; docs/BUSINESS_RULES.md; docs/DEVELOPMENT.md; docs/RELEASE_CHECKLIST.md.
+
+[~] User navigation documentation.
+    Technical docs exist.
+    Gap: no user-facing guide that explains how to navigate every page/module.
+
+[x] In-app Help button in AppShell with support details, version, and permission-aware audit links.
+    Gap: page-specific summaries/workflows are still generic.
+
+=====================================================================
+15. TESTING AND RELEASE STATUS
+=====================================================================
+[x] Large backend suite.
+    Latest full run: 373 tests, 372 passed, 1 skipped, 2724 assertions.
+
+[x] Public site API/storefront tests.
+    Evidence: backend/tests/Feature/PublicSiteApiTest.php; PublicSeoTest.php; DemoDataSeedingTest.php.
+
+[x] Backend tenant/security/finance/sync/performance tests.
+    Evidence: backend/tests/Feature/Tenancy, Security, Finance, Sync, Performance.
+
+[x] Frontend typecheck/lint/build pass.
+    Latest: typecheck PASS, lint 0 errors/2 pre-existing warnings, build PASS.
+
+[~] Static accessibility check.
+    Prior release checklist recorded static PASS.
+    Gap: browser runtime, screen reader, and real-device checks NOT RUN.
+
+[~] Production release readiness.
+    docs/RELEASE_CHECKLIST.md status: PARTIAL / BLOCKED for production.
+    Open blockers include production host/TLS, queue worker/scheduler/uptime/pager, off-site encrypted backups/PITR, Composer advisories, legal/tax/payroll sign-off, language owner copy, and browser runtime verification.
+
+=====================================================================
+16. PRIORITY NEXT WORK (SUGGESTED ORDER)
+=====================================================================
+1. Implement browser-side offline outbox with local persistence, auto/manual sync, and conflict UI.
+2. Finish POS split payments, touch/mouse modes, most-sold tiles, scanner input, and receipt/quotation printing.
+3. Build platform console UI: branch analytics, comparison charts, branch registration, report builder.
+4. Add user navigation docs and make the Help button page-specific.
+5. Add settings pages for branding/modules/feature flags and broader Excel/PDF export framework.
+6. Add Laravel lang files and full UI string coverage for all six languages.
+7. Implement top-bar clock/task/notification center and calendar workflow.
+8. Port remaining original TMS_Homepage.html design features: infinite brand marquee, hover/scroll animations, frame ZIP upload, contact form/social links.
+9. Build full document template editor UI with ten professional presets.
+10. Make domain model configurable enough for hardware/other industries.
+11. Commit the intended tree and rerun release gates on that exact commit.
+12. Rerun browser/device/production acceptance before release.

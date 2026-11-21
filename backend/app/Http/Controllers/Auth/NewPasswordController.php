@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Support\AccessRevocation;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +16,8 @@ use Illuminate\Validation\ValidationException;
 
 class NewPasswordController extends Controller
 {
+    public function __construct(private readonly AccessRevocation $revocation) {}
+
     /**
      * Handle an incoming new password request.
      *
@@ -32,11 +36,13 @@ class NewPasswordController extends Controller
         // database. Otherwise we will parse the error and return the response.
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user) use ($request) {
+            function (User $user) use ($request) {
                 $user->forceFill([
                     'password' => Hash::make($request->string('password')),
                     'remember_token' => Str::random(60),
                 ])->save();
+
+                $this->revocation->revoke($user);
 
                 event(new PasswordReset($user));
             }

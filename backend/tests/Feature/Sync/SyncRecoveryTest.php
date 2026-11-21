@@ -3,6 +3,7 @@
 namespace Tests\Feature\Sync;
 
 use App\Models\Branch;
+use App\Models\Customer;
 use App\Models\Platform;
 use App\Models\SyncOperation;
 use App\Models\User;
@@ -68,25 +69,51 @@ class SyncRecoveryTest extends TestCase
         );
 
         $this->assertSame(1, SyncOperation::where('branch_id', $this->branchA->id)->count());
+        $this->assertSame(1, Customer::where('branch_id', $this->branchA->id)->count());
     }
 
-    public function test_invalid_payload_is_rejected(): void
+    public function test_malformed_payload_fails_per_operation_without_aborting_batch(): void
     {
+        $operations = [
+            [
+                'operation_id' => (string) Str::uuid(),
+                'operation_type' => 'customer_create',
+                'payload_version' => 1,
+                'client_time' => now()->toIso8601String(),
+                'idempotency_key' => (string) Str::uuid(),
+                'payload' => [],
+            ],
+            [
+                'operation_id' => (string) Str::uuid(),
+                'operation_type' => 'customer_create',
+                'payload_version' => 1,
+                'client_time' => now()->toIso8601String(),
+                'idempotency_key' => (string) Str::uuid(),
+                'payload' => ['name' => 'Valid Customer'],
+            ],
+        ];
+
         $this->withAuthToken($this->cashier)
             ->postJson("/api/branches/{$this->branchA->id}/sync/upload", [
                 'device_id' => 'device-1',
-                'operations' => [
-                    [
-                        'operation_id' => (string) Str::uuid(),
-                        'operation_type' => 'customer_create',
-                        'payload_version' => 1,
-                        'client_time' => now()->toIso8601String(),
-                        'idempotency_key' => (string) Str::uuid(),
-                        'payload' => [],
-                    ],
-                ],
+                'operations' => $operations,
             ])
-            ->assertUnprocessable();
+            ->assertOk()
+            ->assertJsonPath('data.processed', 2)
+            ->assertJsonPath('data.results.0.status', 'failed')
+            ->assertJsonPath('data.results.0.error_class', 'ValidationException')
+            ->assertJsonPath('data.results.1.status', 'completed')
+            ->assertJsonPath('data.results.1.replayed', false);
+
+        $this->assertSame(2, SyncOperation::where('branch_id', $this->branchA->id)->count());
+        $this->assertSame(1, Customer::where('branch_id', $this->branchA->id)->count());
+        $statuses = SyncOperation::where('branch_id', $this->branchA->id)
+            ->get()
+            ->mapWithKeys(fn (SyncOperation $operation): array => [$operation->operation_id => $operation->status])
+            ->all();
+
+        $this->assertSame('failed', $statuses[$operations[0]['operation_id']]);
+        $this->assertSame('completed', $statuses[$operations[1]['operation_id']]);
     }
 
     public function test_expired_session_is_rejected(): void

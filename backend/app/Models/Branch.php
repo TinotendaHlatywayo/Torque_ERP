@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Branch extends Model
@@ -58,9 +59,94 @@ class Branch extends Model
         return $this->hasMany(Customer::class);
     }
 
+    public function employees(): HasMany
+    {
+        return $this->hasMany(Employee::class);
+    }
+
+    public function leaveTypes(): HasMany
+    {
+        return $this->hasMany(LeaveType::class);
+    }
+
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
+    public function attendanceRecords(): HasMany
+    {
+        return $this->hasMany(AttendanceRecord::class);
+    }
+
+    public function disciplinaryRecords(): HasMany
+    {
+        return $this->hasMany(DisciplinaryRecord::class);
+    }
+
+    public function hrAttachments(): HasMany
+    {
+        return $this->hasMany(HrAttachment::class);
+    }
+
+    public function salaryGrades(): HasMany
+    {
+        return $this->hasMany(SalaryGrade::class);
+    }
+
+    public function employeeSalaryAssignments(): HasMany
+    {
+        return $this->hasMany(EmployeeSalaryAssignment::class);
+    }
+
+    public function employeePayComponents(): HasMany
+    {
+        return $this->hasMany(EmployeePayComponent::class);
+    }
+
+    public function payrollStatutoryRules(): HasMany
+    {
+        return $this->hasMany(PayrollStatutoryRule::class);
+    }
+
+    public function employeeLoans(): HasMany
+    {
+        return $this->hasMany(EmployeeLoan::class);
+    }
+
+    public function payrollPeriods(): HasMany
+    {
+        return $this->hasMany(PayrollPeriod::class);
+    }
+
+    public function payrollRuns(): HasMany
+    {
+        return $this->hasMany(PayrollRun::class);
+    }
+
+    public function payslips(): HasMany
+    {
+        return $this->hasMany(Payslip::class);
+    }
+
+    public function payrollAdjustments(): HasMany
+    {
+        return $this->hasMany(PayrollAdjustment::class);
+    }
+
+    public function loanRepayments(): HasMany
+    {
+        return $this->hasMany(LoanRepayment::class);
+    }
+
     public function sales(): HasMany
     {
         return $this->hasMany(Sale::class);
+    }
+
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class);
     }
 
     public function receipts(): HasMany
@@ -93,13 +179,63 @@ class Branch extends Model
         return $this->hasMany(Expense::class);
     }
 
+    public function assets(): HasMany
+    {
+        return $this->hasMany(Asset::class);
+    }
+
     public function supplierBills(): HasMany
     {
         return $this->hasMany(SupplierBill::class);
     }
 
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(NotificationDelivery::class);
+    }
+
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
+    }
+
+    public function workshopServices(): HasMany
+    {
+        return $this->hasMany(WorkshopService::class);
+    }
+
+    public function jobs(): HasMany
+    {
+        return $this->hasMany(ServiceJob::class);
+    }
+
+    public function stockTransfers(): HasMany
+    {
+        return $this->hasMany(StockTransfer::class, 'source_branch_id');
+    }
+
+    public function stocktakes(): HasMany
+    {
+        return $this->hasMany(Stocktake::class);
+    }
+
+    public function loyaltyConfig(): HasOne
+    {
+        return $this->hasOne(LoyaltyConfig::class);
+    }
+
+    public function loyaltySaleEvents(): HasMany
+    {
+        return $this->hasMany(LoyaltySaleEvent::class);
+    }
+
+    public function loyaltyQualifications(): HasMany
+    {
+        return $this->hasMany(LoyaltyQualification::class);
     }
 }

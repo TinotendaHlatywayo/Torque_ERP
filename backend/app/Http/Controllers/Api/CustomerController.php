@@ -174,6 +174,9 @@ class CustomerController extends Controller
             'address' => $customer->address,
             'notes' => $customer->notes,
             'is_active' => $customer->is_active,
+            'marketing_consent_at' => $customer->marketing_consent_at?->toIso8601String(),
+            'marketing_channel' => $customer->marketing_channel,
+            'marketing_channel_active' => $customer->marketing_channel_active,
             'created_at' => $customer->created_at?->toIso8601String(),
             'updated_at' => $customer->updated_at?->toIso8601String(),
         ];
@@ -191,6 +194,9 @@ class CustomerController extends Controller
             'address' => $customer->address,
             'notes' => $customer->notes,
             'is_active' => $customer->is_active,
+            'marketing_consent_at' => $customer->marketing_consent_at?->toIso8601String(),
+            'marketing_channel' => $customer->marketing_channel,
+            'marketing_channel_active' => $customer->marketing_channel_active,
         ];
     }
 }

@@ -23,7 +23,7 @@ export type SaleItem = {
   currency_code: string
 }
 
-export type SaleDetail = {
+export type SaleSummary = {
   id: string
   sale_number: string
   status: string
@@ -35,9 +35,28 @@ export type SaleDetail = {
   total_minor: number
   paid_minor: number
   customer: { id: string; name: string } | null
+  receipt: { id: string; receipt_number: string } | null
+  items_count: number
+  created_at: string | null
+}
+
+export type SaleDetail = {
+  id: string
+  sale_number: string
+  status: string
+  payment_status: string
+  currency_code: string
+  subtotal_minor: number
+  discount_minor: number
+  tax_minor: number
+  total_minor: number
+  paid_minor: number
+  voided_at?: string | null
+  void_reason?: string | null
+  customer: { id: string; name: string } | null
   items: SaleItem[]
   payments: SalePayment[]
-  receipt: { id: string; receipt_number: string; issued_at: string | null } | null
+  receipt: { id: string; receipt_number: string; issued_at?: string | null } | null
   created_at: string | null
 }
 

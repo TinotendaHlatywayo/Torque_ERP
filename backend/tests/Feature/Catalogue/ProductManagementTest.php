@@ -3,10 +3,13 @@
 namespace Tests\Feature\Catalogue;
 
 use App\Models\Branch;
+use App\Models\CmsMedia;
 use App\Models\Platform;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\Feature\AccessControl\InteractsWithBranchAccess;
 use Tests\TestCase;
 
@@ -78,6 +81,86 @@ class ProductManagementTest extends TestCase
 
         $response->assertJsonPath('data.category.name', 'Filters');
         $this->assertSame($category->id, $response->json('data.category.id'));
+    }
+
+    public function test_products_require_customer_facing_fields_before_publication(): void
+    {
+        $unit = $this->unit($this->branchA, 'WEB');
+
+        $this->withAuthToken($this->admin)
+            ->postJson("/api/branches/{$this->branchA->id}/products", [
+                'name' => 'Air Filter',
+                'sku' => 'WEB-100',
+                'base_unit_id' => $unit->id,
+                'selling_price' => '12.50',
+                'is_public' => true,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('is_public');
+
+        $response = $this->withAuthToken($this->admin)
+            ->postJson("/api/branches/{$this->branchA->id}/products", [
+                'name' => 'Air Filter',
+                'sku' => 'WEB-101',
+                'base_unit_id' => $unit->id,
+                'selling_price' => '12.50',
+                'is_public' => true,
+                'public_slug' => 'air-filter',
+                'public_description' => 'A customer-friendly part description.',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.is_public', true)
+            ->assertJsonPath('data.public_slug', 'air-filter')
+            ->assertJsonPath('data.public_description', 'A customer-friendly part description.');
+
+        $this->assertDatabaseHas('products', [
+            'id' => $response->json('data.id'),
+            'branch_id' => $this->branchA->id,
+            'is_public' => true,
+        ]);
+    }
+
+    public function test_public_product_can_store_an_exact_image_url_and_description(): void
+    {
+        $unit = $this->unit($this->branchA, 'WEB');
+
+        $this->withAuthToken($this->admin)
+            ->postJson("/api/branches/{$this->branchA->id}/products", [
+                'name' => 'Oil Filter',
+                'sku' => 'WEB-IMG-100',
+                'base_unit_id' => $unit->id,
+                'selling_price' => '12.50',
+                'is_public' => true,
+                'public_slug' => 'oil-filter-image',
+                'public_description' => 'A customer-friendly oil filter description.',
+                'public_image_url' => '/images/products/oil-filter.svg',
+                'public_image_alt' => 'Illustration of an oil filter',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.public_image_url', '/images/products/oil-filter.svg')
+            ->assertJsonPath('data.public_image_alt', 'Illustration of an oil filter')
+            ->assertJsonPath('data.public_description', 'A customer-friendly oil filter description.');
+
+        $this->assertDatabaseHas('products', [
+            'branch_id' => $this->branchA->id,
+            'sku' => 'WEB-IMG-100',
+            'public_image_url' => '/images/products/oil-filter.svg',
+        ]);
+
+        $this->withAuthToken($this->admin)
+            ->postJson("/api/branches/{$this->branchA->id}/products", [
+                'name' => 'Unsafe Image',
+                'sku' => 'WEB-IMG-101',
+                'base_unit_id' => $unit->id,
+                'selling_price' => '12.50',
+                'is_public' => true,
+                'public_slug' => 'unsafe-image',
+                'public_description' => 'A customer-friendly description.',
+                'public_image_url' => 'javascript:alert(1)',
+                'public_image_alt' => 'Unsafe image',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('public_image_url');
     }
 
     public function test_duplicate_sku_is_rejected_case_insensitively(): void
@@ -318,5 +401,27 @@ class ProductManagementTest extends TestCase
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('selling_price');
+    }
+
+    public function test_branch_user_can_upload_and_preview_a_converted_product_image(): void
+    {
+        Storage::fake('local');
+
+        $response = $this->withAuthToken($this->admin)
+            ->post("/api/branches/{$this->branchA->id}/products/media", [
+                'image' => UploadedFile::fake()->image('brake-pads.png', 900, 600),
+            ])
+            ->assertCreated();
+
+        $media = CmsMedia::findOrFail($response->json('data.id'));
+        $this->assertNotNull($media->preferred_variant);
+        $this->assertArrayHasKey($media->preferred_variant, $media->variants ?? []);
+        $response->assertJsonPath('data.id', $media->id)
+            ->assertJsonPath('data.preferred_variant', $media->preferred_variant);
+
+        $variant = str_replace('_', '-', (string) $media->preferred_variant);
+        $this->withAuthToken($this->admin)
+            ->get("/api/branches/{$this->branchA->id}/products/media/{$media->id}/preview/{$variant}")
+            ->assertOk();
     }
 }

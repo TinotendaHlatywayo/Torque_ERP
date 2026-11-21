@@ -30,6 +30,7 @@ final class PriceCalculator
         $results = [];
         $subtotal = 0;
         $discount = 0;
+        $net = 0;
         $tax = 0;
         $total = 0;
         $requiresApproval = false;
@@ -40,6 +41,7 @@ final class PriceCalculator
 
             $subtotal += $result->subtotalMinor;
             $discount += $result->discountMinor;
+            $net += $result->netMinor;
             $tax += $result->taxMinor;
             $total += $result->totalMinor;
 
@@ -80,7 +82,7 @@ final class PriceCalculator
             lines: $results,
             subtotalMinor: $subtotal,
             discountMinor: $discount,
-            netMinor: $subtotal - $discount,
+            netMinor: $net,
             taxMinor: $tax,
             totalMinor: $total,
             currencyCode: $currencyCode,
@@ -133,6 +135,7 @@ final class PriceCalculator
 
         if ($netMinor < $floorSubtotalMinor) {
             $netMinor = $floorSubtotalMinor;
+            $discountMinor = $subtotalMinor - $netMinor;
             $approvalReasons[] = 'below_floor_price';
         }
 

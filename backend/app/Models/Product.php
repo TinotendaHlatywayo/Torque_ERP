@@ -24,12 +24,19 @@ class Product extends Model
         'currency_code',
         'track_stock',
         'is_active',
+        'public_slug',
+        'public_description',
+        'is_public',
+        'public_image_id',
+        'public_image_url',
+        'public_image_alt',
     ];
 
     protected $casts = [
         'selling_price_minor' => 'integer',
         'track_stock' => 'boolean',
         'is_active' => 'boolean',
+        'is_public' => 'boolean',
     ];
 
     public function branch(): BelongsTo
@@ -60,5 +67,20 @@ class Product extends Model
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
+    }
+
+    public function publicImage(): BelongsTo
+    {
+        return $this->belongsTo(CmsMedia::class, 'public_image_id');
+    }
+
+    public function fitments(): HasMany
+    {
+        return $this->hasMany(ProductFitment::class);
+    }
+
+    public function oemRefs(): HasMany
+    {
+        return $this->hasMany(ProductOemRef::class);
     }
 }

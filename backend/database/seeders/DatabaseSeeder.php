@@ -30,8 +30,15 @@ class DatabaseSeeder extends Seeder
                 'slug' => 'tms-rusape-main',
                 'timezone' => 'Africa/Harare',
                 'currency_code' => 'USD',
+                'status' => Branch::STATUS_ACTIVE,
+                'approved_at' => now(),
             ]
         );
+
+        $branch->forceFill([
+            'status' => Branch::STATUS_ACTIVE,
+            'approved_at' => $branch->approved_at ?? now(),
+        ])->save();
 
         $email = config('seeding.admin_email');
         $password = config('seeding.admin_password');

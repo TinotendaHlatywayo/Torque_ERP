@@ -173,11 +173,11 @@ export function CategoryManager({
               <table className="w-full text-left text-sm">
                 <thead className="border-b text-muted-foreground">
                   <tr>
-                    <th className="py-3 pr-4 font-medium">Category</th>
-                    <th className="py-3 pr-4 font-medium">Parent</th>
-                    <th className="py-3 pr-4 font-medium">Products</th>
-                    <th className="py-3 pr-4 font-medium">Status</th>
-                    {canManage && <th className="py-3 text-right font-medium">Actions</th>}
+                    <th className="py-3 pr-4 font-medium" scope="col">Category</th>
+                    <th className="py-3 pr-4 font-medium" scope="col">Parent</th>
+                    <th className="py-3 pr-4 font-medium" scope="col">Products</th>
+                    <th className="py-3 pr-4 font-medium" scope="col">Status</th>
+                    {canManage && <th className="py-3 text-right font-medium" scope="col">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
