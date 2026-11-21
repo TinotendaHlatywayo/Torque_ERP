@@ -135,7 +135,9 @@ class PlatformBranchController extends Controller
             'approved_at' => $branch->approved_at?->toIso8601String(),
             'approved_by' => $branch->approver?->name,
             'suspended_at' => $branch->suspended_at?->toIso8601String(),
+            'suspended_by' => $branch->suspender?->name,
             'suspension_reason' => $branch->suspension_reason,
+            'registration_notes' => is_array($branch->settings) ? ($branch->settings['registration_notes'] ?? null) : null,
             'archived_at' => $branch->archived_at?->toIso8601String(),
             'created_at' => $branch->created_at?->toIso8601String(),
         ];

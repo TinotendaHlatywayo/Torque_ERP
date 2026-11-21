@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -28,6 +29,21 @@ class Branch extends Model
         'suspended_at' => 'datetime',
         'archived_at' => 'datetime',
     ];
+
+    public function platform(): BelongsTo
+    {
+        return $this->belongsTo(Platform::class);
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function suspender(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'suspended_by');
+    }
 
     public function memberships(): HasMany
     {

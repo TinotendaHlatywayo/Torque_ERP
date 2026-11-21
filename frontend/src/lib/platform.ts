@@ -14,7 +14,9 @@ export type PlatformBranch = {
   approved_at: string | null
   approved_by: string | null
   suspended_at: string | null
+  suspended_by: string | null
   suspension_reason: string | null
+  registration_notes: string | null
   archived_at: string | null
   created_at: string | null
 }
@@ -99,4 +101,15 @@ export async function updatePlatformBranchStatus(
 
 export async function impersonatePlatformBranch(branchId: string): Promise<void> {
   await api.post(`/api/platform/branches/${branchId}/impersonate`)
+}
+
+export async function exportPlatformBranchReport(
+  platformId: string,
+  asOf?: string,
+): Promise<{ id: string; download_url: string; expires_at: string | null }> {
+  const response = await api.post<{ data: { id: string; download_url: string; expires_at: string | null } }>(
+    `/api/platforms/${platformId}/reports/export`,
+    asOf ? { as_of: asOf } : undefined,
+  )
+  return response.data.data
 }

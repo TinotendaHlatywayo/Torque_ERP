@@ -35,6 +35,36 @@ class BranchLifecycleTest extends TestCase
         return $this->withHeader('Authorization', 'Bearer '.$this->platformAdmin->createToken('platform')->plainTextToken);
     }
 
+    public function test_branch_index_returns_platform_and_staff_details(): void
+    {
+        $approver = User::factory()->create(['name' => 'Approving Admin']);
+        $suspender = User::factory()->create(['name' => 'Suspending Admin']);
+
+        Branch::create([
+            'platform_id' => $this->platform->id,
+            'name' => 'Populated Branch',
+            'code' => 'POP',
+            'slug' => 'populated-branch',
+            'status' => Branch::STATUS_SUSPENDED,
+            'timezone' => 'Africa/Harare',
+            'currency_code' => 'USD',
+            'approved_at' => now(),
+            'approved_by' => $approver->id,
+            'suspended_at' => now(),
+            'suspended_by' => $suspender->id,
+            'suspension_reason' => 'Compliance review',
+            'settings' => ['registration_notes' => 'Opening branch'],
+        ]);
+
+        $this->withPlatformAdmin()
+            ->getJson('/api/platform/branches')
+            ->assertOk()
+            ->assertJsonPath('data.0.platform', 'Test Platform')
+            ->assertJsonPath('data.0.approved_by', 'Approving Admin')
+            ->assertJsonPath('data.0.suspended_by', 'Suspending Admin')
+            ->assertJsonPath('data.0.registration_notes', 'Opening branch');
+    }
+
     public function test_branch_registration_approval_suspension_activation_and_archive(): void
     {
         $response = $this->withPlatformAdmin()
