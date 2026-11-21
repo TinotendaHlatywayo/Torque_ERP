@@ -7,9 +7,10 @@ use App\Models\Category;
 use App\Models\CmsMedia;
 use App\Models\CmsPageVersion;
 use App\Models\Product;
+use App\Support\SiteContent;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'public.home')->name('public.home');
+Route::get('/', fn () => view('public.home', ['siteImages' => app(SiteContent::class)->images()]))->name('public.home');
 
 Route::get('/robots.txt', function () {
     $public = config('app.env') === 'production';
@@ -67,8 +68,9 @@ Route::get('/{slug}', function (string $slug) {
             ->whereColumn('cms_pages.published_version', 'cms_page_versions.version'))
         ->firstOrFail();
     $media = CmsMedia::query()->whereIn('id', $version->media_ids)->get()->keyBy('id');
+    $siteImages = app(SiteContent::class)->images();
 
-    return view('public.page', compact('version', 'media'));
+    return view('public.page', compact('version', 'media', 'siteImages'));
 })->where('slug', '[a-z0-9-]+')->name('public.cms-page');
 
 require __DIR__.'/auth.php';

@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <meta name="referrer" content="no-referrer">
-    <link rel="icon" type="image/png" href="{{ asset('tms_logo_transparent.png') }}">
+    <link rel="icon" href="{{ $siteImages['favicon_media_id']['url'] }}">
     <link rel="stylesheet" href="{{ asset('css/public-site.css') }}">
     <link rel="stylesheet" href="{{ asset('css/catalogue.css') }}">
     <title>Reserve {{ $product->name }} | Taziva Motor Spares</title>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site-header"><a class="brand" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ asset('tms_logo_transparent.png') }}" alt="TMS home"></a><nav aria-label="Main navigation"><a href="{{ route('shop.product', $product->public_slug) }}">Back to product</a></nav></header>
+<header class="site-header"><a class="brand" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ $siteImages['logo_media_id']['url'] }}" alt="{{ $siteImages['logo_media_id']['alt'] }}"></a><nav aria-label="Main navigation"><a href="{{ route('shop.product', $product->public_slug) }}">Back to product</a></nav></header>
 <main id="main" class="reservation-page">
     <div class="reservation-heading"><p class="eyebrow">A short stock hold</p><h1>Request a reservation</h1><p>Share a way for the Rusape team to reach you. A short hold is created only if the stock is still available when you submit.</p></div>
     <div class="reservation-layout">
@@ -38,6 +38,6 @@
         <aside class="reservation-summary" aria-label="Reservation summary"><p class="eyebrow">Your selection</p><div class="summary-product"><span class="summary-mark" aria-hidden="true">T</span><div><strong>{{ $product->name }}</strong><small>{{ $product->category?->name ?? 'Motor spares' }}</small></div></div><dl><div><dt>Current unit price</dt><dd>{{ $price }} {{ $product->currency_code }}</dd></div><div><dt>Hold period</dt><dd>{{ max(1, (int) config('catalog.reservation_expiration_minutes', 15)) }} minutes</dd></div></dl><p class="summary-note">The stock hold starts only after the server accepts your request. The final amount reflects the selected quantity and current listed price.</p></aside>
     </div>
 </main>
-<footer class="site-footer"><a class="brand brand-small" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ asset('tms_logo_transparent.png') }}" alt="TMS home"></a><p>Locally focused. Road ready.</p><span>© {{ date('Y') }} Taziva Motor Spares</span></footer>
+<footer class="site-footer"><a class="brand brand-small" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ $siteImages['logo_media_id']['url'] }}" alt="{{ $siteImages['logo_media_id']['alt'] }}"></a><p>Locally focused. Road ready.</p><span>© {{ date('Y') }} Taziva Motor Spares</span></footer>
 </body>
 </html>

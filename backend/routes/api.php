@@ -44,6 +44,7 @@ use App\Http\Controllers\Api\PayrollStatutoryRuleController;
 use App\Http\Controllers\Api\PayslipController;
 use App\Http\Controllers\Api\PlatformAccessController;
 use App\Http\Controllers\Api\PlatformBranchController;
+use App\Http\Controllers\Api\PlatformBranchSessionController;
 use App\Http\Controllers\Api\PlatformReportController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductConversionController;
@@ -601,6 +602,9 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
         ->middleware('platform.permission:platform.branches.manage');
     Route::patch('/platform/branches/{branch}/archive', [PlatformBranchController::class, 'archive'])
         ->middleware('platform.permission:platform.branches.manage');
+    Route::post('/platform/branches/{branch}/impersonate', [PlatformBranchSessionController::class, 'impersonate'])
+        ->middleware('platform.permission:platform.branches.view');
+    Route::post('/platform/branch-session/return', [PlatformBranchSessionController::class, 'returnToPlatform']);
 });
 
 Route::get('/media/{cmsMedia}/{variant}', [CmsContentController::class, 'publicMedia'])->name('public.media');

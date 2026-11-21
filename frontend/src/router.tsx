@@ -40,6 +40,7 @@ const LoyaltyPage = lazy(() => import("./pages/app/LoyaltyPage"))
 const AssetsPage = lazy(() => import("./pages/app/AssetsPage"))
 const AuditLogPage = lazy(() => import("./pages/app/AuditLogPage"))
 const PlatformAuditLogPage = lazy(() => import("./pages/platform/AuditLogPage"))
+const PlatformBranchesPage = lazy(() => import("./pages/platform/BranchesPage"))
 const ContentPage = lazy(() => import("./pages/platform/ContentPage"))
 
 function routeLoading() {
@@ -210,6 +211,10 @@ export const router = createBrowserRouter([
   {
     path: "/platform",
     element: protectedPage(<PlatformLandingPage />, { platformOnly: true }),
+  },
+  {
+    path: "/platform/branches",
+    element: protectedPage(<PlatformBranchesPage />, { platformPermission: "platform.branches.view" }),
   },
   {
     path: "/platform/content",

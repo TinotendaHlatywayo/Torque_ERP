@@ -54,6 +54,7 @@ const THEME_OPTIONS: { value: Theme; label: string }[] = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [logoutError, setLogoutError] = useState("")
+  const [returnError, setReturnError] = useState("")
   const [helpOpen, setHelpOpen] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
   const navigate = useNavigate()
@@ -98,6 +99,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     },
     onError: (error: unknown) => {
       setLogoutError(apiErrorMessage(error, "Could not sign out. Please try again."))
+    },
+  })
+
+  const returnMutation = useMutation({
+    mutationFn: async () => {
+      await api.post("/api/platform/branch-session/return")
+    },
+    onSuccess: () => {
+      storeBranchId(null)
+      queryClient.clear()
+      void queryClient.invalidateQueries({ queryKey: ["me"] })
+      navigate("/platform", { replace: true })
+    },
+    onError: (error: unknown) => {
+      setReturnError(apiErrorMessage(error, "Could not return to the platform. Please try again."))
     },
   })
 
@@ -171,6 +187,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {meQuery.data.user.name}
               </span>
             )}
+            {meQuery.data?.impersonation.active && (
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-11 border-brand-green-deep text-brand-green-deep"
+                disabled={returnMutation.isPending}
+                onClick={() => {
+                  setReturnError("")
+                  returnMutation.mutate()
+                }}
+              >
+                {returnMutation.isPending ? "Returning..." : "Back to platform"}
+              </Button>
+            )}
             {hasPlatformAccess && (
               <Link to="/platform" className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-foreground hover:bg-brand-green/10 hover:text-brand-green-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 Platform
@@ -226,9 +256,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
         </div>
-        {logoutError && (
+        {(logoutError || returnError) && (
           <div role="alert" className="container mx-auto px-4 pb-3 text-sm font-semibold text-destructive">
-            {logoutError}
+            {logoutError || returnError}
+          </div>
+        )}
+        {meQuery.data?.impersonation.active && (
+          <div className="border-b border-brand-mint/60 bg-brand-pale px-4 py-2 text-center text-sm font-semibold text-brand-green-deep">
+            Viewing {activeBranch?.name ?? "a branch workspace"} through platform access.
           </div>
         )}
       </header>

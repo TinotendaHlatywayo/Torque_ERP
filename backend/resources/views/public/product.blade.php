@@ -7,7 +7,7 @@
     <meta name="robots" content="index, follow">
     <meta name="description" content="{{ $description }}">
     <link rel="canonical" href="{{ $canonical }}">
-    <link rel="icon" type="image/png" href="{{ asset('tms_logo_transparent.png') }}">
+    <link rel="icon" href="{{ $siteImages['favicon_media_id']['url'] }}">
     <link rel="stylesheet" href="{{ asset('css/public-site.css') }}">
     <link rel="stylesheet" href="{{ asset('css/catalogue.css') }}">
     <title>{{ $product->name }} | Taziva Motor Spares</title>
@@ -37,7 +37,7 @@
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site-header"><a class="brand" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ asset('tms_logo_transparent.png') }}" alt="TMS home"></a><nav aria-label="Main navigation"><a href="{{ route('shop.index') }}">Catalogue</a><a class="nav-signin" href="{{ rtrim(config('app.frontend_url'), '/') }}/login">Team sign in <span aria-hidden="true">↗</span></a></nav></header>
+<header class="site-header"><a class="brand" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ $siteImages['logo_media_id']['url'] }}" alt="{{ $siteImages['logo_media_id']['alt'] }}"></a><nav aria-label="Main navigation"><a href="{{ route('shop.index') }}">Catalogue</a><a class="nav-signin" href="{{ rtrim(config('app.frontend_url'), '/') }}/login">Team sign in <span aria-hidden="true">↗</span></a></nav></header>
 <main id="main" class="product-detail-page">
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="{{ route('public.home') }}">Home</a><span aria-hidden="true">/</span><a href="{{ route('shop.index') }}">Catalogue</a>@if ($product->category)<span aria-hidden="true">/</span><a href="{{ route('shop.category', $product->category->slug) }}">{{ $product->category->name }}</a>@endif<span aria-hidden="true">/</span><span aria-current="page">{{ $product->name }}</span></nav>
     <section class="product-detail">
@@ -52,6 +52,6 @@
     </section>
     @if ($related->isNotEmpty())<section class="related-products"><div class="related-heading"><p class="eyebrow">Keep looking</p><h2>More from this category</h2></div><div class="related-links">@foreach ($related as $item)<a href="{{ route('shop.product', $item->public_slug) }}">{{ $item->name }} <span aria-hidden="true">↗</span></a>@endforeach</div></section>@endif
 </main>
-<footer class="site-footer"><a class="brand brand-small" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ asset('tms_logo_transparent.png') }}" alt="TMS home"></a><p>Locally focused. Road ready.</p><span>© {{ date('Y') }} Taziva Motor Spares</span></footer>
+<footer class="site-footer"><a class="brand brand-small" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ $siteImages['logo_media_id']['url'] }}" alt="{{ $siteImages['logo_media_id']['alt'] }}"></a><p>Locally focused. Road ready.</p><span>© {{ date('Y') }} Taziva Motor Spares</span></footer>
 </body>
 </html>

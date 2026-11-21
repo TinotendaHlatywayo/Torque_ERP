@@ -133,18 +133,18 @@ class ProductManagementTest extends TestCase
                 'is_public' => true,
                 'public_slug' => 'oil-filter-image',
                 'public_description' => 'A customer-friendly oil filter description.',
-                'public_image_url' => '/images/products/oil-filter.svg',
-                'public_image_alt' => 'Illustration of an oil filter',
+                'public_image_url' => '/images/products/oil-filter.jpg',
+                'public_image_alt' => 'Photo of an oil filter',
             ])
             ->assertCreated()
-            ->assertJsonPath('data.public_image_url', '/images/products/oil-filter.svg')
-            ->assertJsonPath('data.public_image_alt', 'Illustration of an oil filter')
+            ->assertJsonPath('data.public_image_url', '/images/products/oil-filter.jpg')
+            ->assertJsonPath('data.public_image_alt', 'Photo of an oil filter')
             ->assertJsonPath('data.public_description', 'A customer-friendly oil filter description.');
 
         $this->assertDatabaseHas('products', [
             'branch_id' => $this->branchA->id,
             'sku' => 'WEB-IMG-100',
-            'public_image_url' => '/images/products/oil-filter.svg',
+            'public_image_url' => '/images/products/oil-filter.jpg',
         ]);
 
         $this->withAuthToken($this->admin)

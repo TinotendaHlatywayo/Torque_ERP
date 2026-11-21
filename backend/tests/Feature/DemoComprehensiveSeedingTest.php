@@ -108,7 +108,12 @@ class DemoComprehensiveSeedingTest extends TestCase
         $this->assertDatabaseMissing('report_exports', ['id' => $demoExport->id]);
 
         $this->assertSame(0, Branch::withTrashed()->where('code', 'DEMO-DST-'.$branch->code)->count());
-        $this->assertSame(0, DB::table('products')->where('sku', 'DEMO-RECV-001')->count());
+        $mutare = Branch::where('code', 'TMS-02')->firstOrFail();
+        $mutareDestinationId = Branch::withTrashed()->where('code', 'DEMO-DST-TMS-02')->value('id');
+        $this->assertSame(0, DB::table('products')
+            ->where('sku', 'DEMO-RECV-001')
+            ->whereNotIn('branch_id', array_filter([$mutare->id, $mutareDestinationId]))
+            ->count());
         $this->assertDatabaseHas('branches', ['id' => $branch->id]);
         $this->assertDatabaseHas('users', ['id' => $admin->id]);
     }

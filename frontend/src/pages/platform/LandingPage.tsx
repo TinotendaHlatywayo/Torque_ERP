@@ -4,7 +4,9 @@ import { useMe } from "@/hooks/useMe"
 
 export default function PlatformLandingPage() {
   const { data } = useMe()
-  const canViewAudit = Boolean(data?.user.is_platform_admin) || (data?.platform_permissions.includes("platform.audit.view") ?? false)
+  const isAdmin = Boolean(data?.user.is_platform_admin)
+  const canViewBranches = isAdmin || (data?.platform_permissions.includes("platform.branches.view") ?? false)
+  const canViewAudit = isAdmin || (data?.platform_permissions.includes("platform.audit.view") ?? false)
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -21,6 +23,15 @@ export default function PlatformLandingPage() {
             <p className="text-sm text-muted-foreground">Platform-level management. Branch isolation enforced.</p>
           </CardContent>
         </Card>
+        {canViewBranches && (
+          <Card>
+            <CardHeader><CardTitle>Branches and analytics</CardTitle></CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Manage branch lifecycle, compare finance across branches and open a branch workspace without signing in again.</p>
+              <Link className="mt-4 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" to="/platform/branches">Open branch console <span className="ml-2" aria-hidden="true">→</span></Link>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader><CardTitle>Public website</CardTitle></CardHeader>
           <CardContent>

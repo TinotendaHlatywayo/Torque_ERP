@@ -24,6 +24,7 @@ class PublicReservationController extends Controller
         return response()->view('public.reservation-form', [
             'branch' => $branch,
             'product' => $product,
+            'siteImages' => $this->siteImages(),
             'price' => Money::format($product->selling_price_minor, $product->currency_code),
             'available' => $available,
             'idempotencyKey' => (string) Str::uuid(),
@@ -81,6 +82,7 @@ class PublicReservationController extends Controller
         return response()->view('public.reservation-status', [
             'reservation' => $reservation,
             'token' => $token,
+            'siteImages' => $this->siteImages(),
             'price' => Money::format($reservation->amount_minor, $reservation->currency_code),
             'paynowEnabled' => $paynow->readyFor($reservation->currency_code),
         ])->header('Referrer-Policy', 'no-referrer')->header('Cache-Control', 'private, no-store');

@@ -22,11 +22,15 @@ export function ProtectedRoute({ children, platformOnly = false, platformPermiss
     return <Navigate to={`/login?redirect=${redirect}`} replace />
   }
 
-  if (platformOnly && !data.user.is_platform_admin && data.platform_permissions.length === 0) {
+  if (data.impersonation.active) {
     return <Navigate to="/app" replace />
   }
 
-  if (platformPermission && !data.user.is_platform_admin && !data.platform_permissions.includes(platformPermission)) {
+  if (platformOnly && !data.user.is_platform_admin) {
+    return <Navigate to="/app" replace />
+  }
+
+  if (platformPermission && !data.user.is_platform_admin) {
     return <Navigate to="/app" replace />
   }
 

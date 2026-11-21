@@ -1,0 +1,11 @@
+Default site image credits
+==========================
+
+These default site images are branded crops of the product photos credited in
+../products/CREDITS.txt. They are generic representative images, not photos of
+specific TMS inventory.
+
+home-hero.jpg  - derived from brake-pad-set.jpg
+about.jpg      - derived from shock-absorber.jpg
+services.jpg   - derived from oil-filter.jpg
+contact.jpg    - derived from spark-plugs-4-pack.jpg

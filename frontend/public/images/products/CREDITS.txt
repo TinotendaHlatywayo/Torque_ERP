@@ -1,0 +1,30 @@
+Product photo credits
+=====================
+
+These photos are generic product-type placeholders, not photos of specific TMS inventory.
+Each file was resized and recompressed from the Wikimedia Commons original.
+
+air-filter.jpg
+  "Air filter for Toyota 1KR-FE.jpg" by Ilya Plekhanov
+  https://commons.wikimedia.org/wiki/File:Air_filter_for_Toyota_1KR-FE.jpg
+  CC BY-SA 3.0 - https://creativecommons.org/licenses/by-sa/3.0/
+
+oil-filter.jpg
+  "Engine oil filter.JPG" by Dvortygirl
+  https://commons.wikimedia.org/wiki/File:Engine_oil_filter.JPG
+  CC BY-SA 3.0 - https://creativecommons.org/licenses/by-sa/3.0/
+
+brake-pad-set.jpg
+  "Performance Disk Brake Pads.jpg" by Treemonster86
+  https://commons.wikimedia.org/wiki/File:Performance_Disk_Brake_Pads.jpg
+  CC BY-SA 3.0 - https://creativecommons.org/licenses/by-sa/3.0/
+
+spark-plugs-4-pack.jpg
+  "Spark plug.jpg" by Socyo~commonswiki
+  https://commons.wikimedia.org/wiki/File:Spark_plug.jpg
+  Public domain
+
+shock-absorber.jpg
+  "Jeep Liberty Shocks 2005.jpg" by Michael Robinson (unixxx)
+  https://commons.wikimedia.org/wiki/File:Jeep_Liberty_Shocks_2005.jpg
+  CC BY-SA 2.5/2.0/1.0 and GFDL

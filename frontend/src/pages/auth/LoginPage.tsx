@@ -14,12 +14,19 @@ import { getPublicSite } from "@/lib/publicApi"
 import { apiErrorMessage } from "@/lib/apiErrors"
 import { getStoredBranchId, preferActiveBranch, storeBranchId } from "@/lib/branch"
 
-type AccessMode = "team" | "customer"
-
-function safeRedirect(value: string | null, fallback: string): string {
+function safeRedirect(value: string | null, me: MeResponse): string {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return fallback
+    return me.default_destination
   }
+
+  if (value.startsWith("/platform") && !me.user.is_platform_admin) {
+    return me.branches.length > 0 ? "/app" : "/account"
+  }
+
+  if (value.startsWith("/app") && me.branches.length === 0) {
+    return me.user.is_platform_admin ? "/platform" : "/account"
+  }
+
   return value
 }
 
@@ -30,13 +37,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [searchParams] = useSearchParams()
-  const [accessMode, setAccessMode] = useState<AccessMode>(() => searchParams.get("redirect")?.startsWith("/account") ? "customer" : "team")
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const siteQuery = useQuery({ queryKey: ['public', 'site'], queryFn: getPublicSite, staleTime: 1000 * 60 * 5 })
   const siteText = (key: string, fallback: string) => siteQuery.data?.content.text[key] || fallback
   const redirect = searchParams.get("redirect")
-  const destination = safeRedirect(redirect, accessMode === "customer" ? "/account" : "/app")
   usePageMeta(
     siteText('login_meta_title', 'Sign In | TMS'),
     siteText('login_meta_description', 'Sign in to your TMS customer account, branch workspace or platform.'),
@@ -54,31 +59,15 @@ export default function LoginPage() {
       const meResponse = await api.get<MeResponse>('/api/user')
       const me = preferActiveBranch(meResponse.data)
       const storedBranchId = getStoredBranchId()
-      if (storedBranchId && !me.branches.some((branch) => branch.id === storedBranchId)) {
+      if (!me.user.is_platform_admin && me.branches.length === 1) {
+        storeBranchId(me.branches[0].id)
+      } else if (storedBranchId && !me.branches.some((branch) => branch.id === storedBranchId)) {
         storeBranchId(null)
       }
       queryClient.setQueryData(['me'], me)
       await queryClient.invalidateQueries({ queryKey: storefrontAccountQueryKey })
 
-      const hasStaffAccess = me.user.is_platform_admin || me.branches.length > 0
-      if (accessMode === "team" && !hasStaffAccess) {
-        setError("This account does not have platform or branch access. Choose customer access instead.")
-        return
-      }
-
-      let target = destination
-      if (!redirect) {
-        if (accessMode === "customer") {
-          target = "/account"
-        } else if (me.user.is_platform_admin && me.branches.length === 0) {
-          target = "/platform"
-        } else if (me.branches.length > 0) {
-          target = "/app"
-        } else {
-          target = "/platform"
-        }
-      }
-      navigate(target, { replace: true })
+      navigate(safeRedirect(redirect, me), { replace: true })
     } catch (err: unknown) {
       setError(apiErrorMessage(err, "Invalid credentials or connection error."))
     } finally {
@@ -93,17 +82,9 @@ export default function LoginPage() {
         <CardHeader className="space-y-1">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-green-deep">{siteText('brand_name', 'Taziva Motor Spares')}</p>
           <CardTitle className="text-2xl font-black tracking-tight">Sign in</CardTitle>
-          <p className="text-sm text-muted-foreground">Access your online orders and reservations, or sign in to the team workspace.</p>
+          <p className="text-sm text-muted-foreground">Your sign-in details open the right place: platform console, branch workspace or customer account.</p>
         </CardHeader>
         <CardContent>
-          <div className="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1" role="group" aria-label="Sign in destination">
-            <button type="button" aria-pressed={accessMode === "team"} onClick={() => setAccessMode("team")} className={`min-h-10 rounded-md px-3 text-sm font-bold transition-colors ${accessMode === "team" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-              Platform / branch
-            </button>
-            <button type="button" aria-pressed={accessMode === "customer"} onClick={() => setAccessMode("customer")} className={`min-h-10 rounded-md px-3 text-sm font-bold transition-colors ${accessMode === "customer" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-              Customer account
-            </button>
-          </div>
           <form className="space-y-4" onSubmit={handleLogin} noValidate>
             {error && (
               <div id="login-error" role="alert" aria-live="assertive" className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">

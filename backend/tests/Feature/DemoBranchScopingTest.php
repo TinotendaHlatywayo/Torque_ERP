@@ -51,9 +51,12 @@ class DemoBranchScopingTest extends TestCase
             ->postJson("/api/branches/{$branch->id}/demo/seed")
             ->assertOk();
 
+        $mutare = Branch::where('code', 'TMS-02')->firstOrFail();
+
         $this->assertSame(5, Product::where('branch_id', $branch->id)->count());
+        $this->assertSame(5, Product::where('branch_id', $mutare->id)->count());
         $this->assertNotNull(Branch::where('code', 'DEMO-DST-TMS-01')->first());
-        $this->assertSame(1, Product::where('branch_id', '!=', $branch->id)->count());
+        $this->assertNotNull(Branch::where('code', 'DEMO-DST-TMS-02')->first());
     }
 
     public function test_wipe_only_affects_the_requested_branch(): void

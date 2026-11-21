@@ -28,6 +28,13 @@ export type MeResponse = {
   }
   branches: BranchSummary[]
   platform_permissions: string[]
+  account_type: "platform" | "branch" | "customer" | "branch_impersonation"
+  default_destination: "/platform" | "/app" | "/account"
+  impersonation: {
+    active: boolean
+    branch_id: string | null
+    platform_user_id: number | null
+  }
 }
 
 export type Membership = {

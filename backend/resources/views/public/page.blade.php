@@ -7,7 +7,7 @@
     <meta name="description" content="{{ \Illuminate\Support\Str::limit(strip_tags(collect($version->sections)->pluck('body')->implode(' ')), 155) }}">
     <meta name="theme-color" content="#f5f3ef">
     <link rel="canonical" href="{{ rtrim(config('app.url'), '/') }}/{{ $version->slug }}">
-    <link rel="icon" type="image/png" href="{{ asset('tms_logo_transparent.png') }}">
+    <link rel="icon" href="{{ $siteImages['favicon_media_id']['url'] }}">
     <link rel="stylesheet" href="{{ asset('css/public-site.css') }}">
     <title>{{ $version->title }} | Taziva Motor Spares</title>
     <meta property="og:type" content="website">
@@ -28,7 +28,7 @@
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site-header"><a class="brand" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ asset('tms_logo_transparent.png') }}" alt="TMS home"></a><nav aria-label="Main navigation"><a href="{{ route('public.home') }}">Home</a></nav></header>
+<header class="site-header"><a class="brand" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ $siteImages['logo_media_id']['url'] }}" alt="{{ $siteImages['logo_media_id']['alt'] }}"></a><nav aria-label="Main navigation"><a href="{{ route('public.home') }}">Home</a></nav></header>
 <main id="main" class="cms-page">
     @if (! collect($version->sections)->contains(fn ($section) => $section['type'] === 'hero'))
         <section class="cms-hero"><p class="eyebrow">Taziva Motor Spares · Rusape</p><h1>{{ $version->title }}</h1></section>
@@ -54,6 +54,6 @@
         @endif
     @endforeach
 </main>
-<footer class="site-footer"><a class="brand brand-small" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ asset('tms_logo_transparent.png') }}" alt="TMS home"></a><p>Locally focused. Road ready.</p><span>© {{ date('Y') }} Taziva Motor Spares</span></footer>
+<footer class="site-footer"><a class="brand brand-small" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ $siteImages['logo_media_id']['url'] }}" alt="{{ $siteImages['logo_media_id']['alt'] }}"></a><p>Locally focused. Road ready.</p><span>© {{ date('Y') }} Taziva Motor Spares</span></footer>
 </body>
 </html>

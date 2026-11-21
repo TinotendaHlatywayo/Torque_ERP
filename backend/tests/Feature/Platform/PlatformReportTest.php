@@ -77,6 +77,9 @@ class PlatformReportTest extends TestCase
             ->assertOk();
 
         $this->assertCount(2, $response->json('data'));
+        $this->assertSame(2, $response->json('overall.branch_count'));
+        $this->assertSame(0, $response->json('overall.invoiced_revenue_minor'));
+        $this->assertSame(['USD'], $response->json('overall.currency_codes'));
     }
 
     public function test_branch_user_cannot_access_platform_report(): void

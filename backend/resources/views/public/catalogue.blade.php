@@ -6,7 +6,7 @@
     <meta name="robots" content="{{ $query !== '' ? 'noindex, follow' : 'index, follow' }}">
     <meta name="description" content="{{ $description }}">
     <link rel="canonical" href="{{ $canonical }}">
-    <link rel="icon" type="image/png" href="{{ asset('tms_logo_transparent.png') }}">
+    <link rel="icon" href="{{ $siteImages['favicon_media_id']['url'] }}">
     <link rel="stylesheet" href="{{ asset('css/public-site.css') }}">
     <link rel="stylesheet" href="{{ asset('css/catalogue.css') }}">
     <title>{{ $title }} | Taziva Motor Spares</title>
@@ -35,7 +35,7 @@
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
-<header class="site-header"><a class="brand" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ asset('tms_logo_transparent.png') }}" alt="TMS home"></a><nav aria-label="Main navigation"><a href="{{ route('public.home') }}">Home</a><a class="nav-signin" href="{{ rtrim(config('app.frontend_url'), '/') }}/login">Team sign in <span aria-hidden="true">↗</span></a></nav></header>
+<header class="site-header"><a class="brand" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ $siteImages['logo_media_id']['url'] }}" alt="{{ $siteImages['logo_media_id']['alt'] }}"></a><nav aria-label="Main navigation"><a href="{{ route('public.home') }}">Home</a><a class="nav-signin" href="{{ rtrim(config('app.frontend_url'), '/') }}/login">Team sign in <span aria-hidden="true">↗</span></a></nav></header>
 <main id="main" class="catalogue-page">
     <div class="catalogue-heading"><div><p class="eyebrow">Taziva Motor Spares · Rusape</p><h1>{{ $title }}</h1><p class="catalogue-intro">Browse our published catalogue. Contact our local team to confirm current availability before travelling.</p></div><form class="catalogue-search" method="get" action="{{ $category ? route('shop.category', $category->slug) : route('shop.index') }}" role="search"><label class="sr-only" for="catalogue-q">Search motor spares</label><input id="catalogue-q" name="q" value="{{ $query }}" maxlength="80" placeholder="Search parts and descriptions"><button type="submit" aria-label="Search catalogue">Search <span aria-hidden="true">→</span></button></form></div>
     <div class="catalogue-layout">
@@ -71,6 +71,6 @@
         </section>
     </div>
 </main>
-<footer class="site-footer"><a class="brand brand-small" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ asset('tms_logo_transparent.png') }}" alt="TMS home"></a><p>Locally focused. Road ready.</p><span>© {{ date('Y') }} Taziva Motor Spares</span></footer>
+<footer class="site-footer"><a class="brand brand-small" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ $siteImages['logo_media_id']['url'] }}" alt="{{ $siteImages['logo_media_id']['alt'] }}"></a><p>Locally focused. Road ready.</p><span>© {{ date('Y') }} Taziva Motor Spares</span></footer>
 </body>
 </html>

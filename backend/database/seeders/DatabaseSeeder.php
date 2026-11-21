@@ -8,6 +8,7 @@ use App\Models\Platform;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class DatabaseSeeder extends Seeder
@@ -22,23 +23,18 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $branch = Branch::firstOrCreate(
-            ['code' => 'TMS-01'],
-            [
-                'platform_id' => $platform->id,
+        $branches = [
+            $this->ensureBranch($platform, [
+                'code' => 'TMS-01',
                 'name' => 'TMS Rusape Main Branch',
                 'slug' => 'tms-rusape-main',
-                'timezone' => 'Africa/Harare',
-                'currency_code' => 'USD',
-                'status' => Branch::STATUS_ACTIVE,
-                'approved_at' => now(),
-            ]
-        );
-
-        $branch->forceFill([
-            'status' => Branch::STATUS_ACTIVE,
-            'approved_at' => $branch->approved_at ?? now(),
-        ])->save();
+            ]),
+            $this->ensureBranch($platform, [
+                'code' => 'TMS-02',
+                'name' => 'TMS Mutare Branch',
+                'slug' => 'tms-mutare-main',
+            ]),
+        ];
 
         $email = config('seeding.admin_email');
         $password = config('seeding.admin_password');
@@ -62,12 +58,66 @@ class DatabaseSeeder extends Seeder
             'is_platform_admin' => true,
         ])->save();
 
-        BranchUser::firstOrCreate(
+        foreach ($branches as $branch) {
+            $this->ensureMembership($branch, $user);
+            $this->ensureBranchAdministrator($branch);
+        }
+    }
+
+    private function ensureBranch(Platform $platform, array $definition): Branch
+    {
+        $branch = Branch::firstOrCreate(
+            ['code' => $definition['code']],
+            [
+                'platform_id' => $platform->id,
+                'name' => $definition['name'],
+                'slug' => $definition['slug'],
+                'timezone' => 'Africa/Harare',
+                'currency_code' => 'USD',
+                'status' => Branch::STATUS_ACTIVE,
+                'approved_at' => now(),
+            ]
+        );
+
+        $branch->forceFill([
+            'platform_id' => $platform->id,
+            'name' => $definition['name'],
+            'slug' => $definition['slug'],
+            'status' => Branch::STATUS_ACTIVE,
+            'approved_at' => $branch->approved_at ?? now(),
+        ])->save();
+
+        return $branch;
+    }
+
+    private function ensureBranchAdministrator(Branch $branch): void
+    {
+        $target = User::firstOrCreate(
+            ['email' => 'branch-admin-'.$branch->slug.'@tms.local'],
+            [
+                'name' => 'Branch Administrator - '.$branch->name,
+                'password' => Hash::make(Str::password(32)),
+                'is_active' => true,
+                'is_platform_admin' => false,
+            ]
+        );
+
+        $this->ensureMembership($branch, $target);
+    }
+
+    private function ensureMembership(Branch $branch, User $user): void
+    {
+        $membership = BranchUser::firstOrCreate(
             ['branch_id' => $branch->id, 'user_id' => $user->id],
             [
                 'role' => 'admin',
                 'is_active' => true,
             ]
         );
+
+        $membership->forceFill([
+            'role' => 'admin',
+            'is_active' => true,
+        ])->save();
     }
 }

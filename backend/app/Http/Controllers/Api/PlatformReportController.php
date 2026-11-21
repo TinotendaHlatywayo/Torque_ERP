@@ -30,7 +30,40 @@ class PlatformReportController extends Controller
             $this->metrics->metrics($branch, $request->query('as_of')),
         ))->all();
 
-        return response()->json(['data' => $data]);
+        $totalFields = [
+            'money_in_minor',
+            'money_out_minor',
+            'invoiced_revenue_minor',
+            'expenses_incurred_minor',
+            'profit_basis_minor',
+            'money_owed_to_us_minor',
+            'bills_to_pay_minor',
+            'inventory_value_minor',
+            'cash_position_minor',
+        ];
+
+        $overall = array_fill_keys($totalFields, 0);
+        $currencies = [];
+
+        foreach ($data as $row) {
+            foreach ($totalFields as $field) {
+                $overall[$field] += (int) $row[$field];
+            }
+
+            $currencies[] = $row['currency_code'];
+        }
+
+        $currencies = array_values(array_unique($currencies));
+
+        return response()->json([
+            'data' => $data,
+            'overall' => array_merge([
+                'branch_count' => count($data),
+                'as_of' => $data[0]['as_of'] ?? now()->toDateString(),
+                'currency_codes' => $currencies,
+                'mixed_currency' => count($currencies) > 1,
+            ], $overall),
+        ]);
     }
 
     public function export(Request $request, Platform $platform): JsonResponse

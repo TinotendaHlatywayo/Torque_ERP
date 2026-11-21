@@ -74,31 +74,75 @@ class DemoController extends Controller
 
     private const STOCKTAKE_REASON = 'Demo cycle count';
 
+    private const PRIMARY_BRANCHES = [
+        ['code' => 'TMS-01', 'name' => 'TMS Rusape Main Branch', 'slug' => 'tms-rusape-main'],
+        ['code' => 'TMS-02', 'name' => 'TMS Mutare Branch', 'slug' => 'tms-mutare-main'],
+    ];
+
     public function seed(): JsonResponse
     {
         $branch = $this->resolveBranch();
+        $targets = [];
 
-        DB::transaction(function () use ($branch): void {
+        DB::transaction(function () use ($branch, &$targets): void {
             $actor = $this->resolveActor($branch, true);
-            $this->ensureMembership($branch, $actor, Roles::ADMIN);
 
-            $destination = $this->ensureDestinationBranch($branch, $actor);
-            $users = $this->seedUsers($branch);
-            $products = $this->seedCatalogue($branch, $actor, $destination);
-            $accounts = $this->seedFinance($branch, $actor);
-            [$customers, $sales] = $this->seedSales($branch, $actor, $products, $accounts, $users);
-            $this->seedReservations($branch, $actor, $products['OF-210']);
-            $this->seedWorkshop($branch, $actor, $customers['RUSAPE-FLEET'], $products['OF-210'], $sales[0]);
-            $this->seedStockOperations($branch, $actor, $destination, $products);
-            $this->seedHrAndPayroll($branch, $actor, $users['manager']);
-            $this->seedLoyaltyAndContent($branch, $actor, $customers['MAYA']);
-            $this->seedTasks($branch, $actor, $users['manager']);
+            if (in_array($branch->code, array_column(self::PRIMARY_BRANCHES, 'code'), true)) {
+                foreach (self::PRIMARY_BRANCHES as $definition) {
+                    $target = Branch::firstOrCreate(
+                        ['code' => $definition['code']],
+                        [
+                            'platform_id' => $branch->platform_id,
+                            'name' => $definition['name'],
+                            'slug' => $definition['slug'],
+                            'timezone' => $branch->timezone,
+                            'currency_code' => $branch->currency_code,
+                            'status' => Branch::STATUS_ACTIVE,
+                            'approved_at' => now(),
+                        ]
+                    );
+
+                    $target->forceFill([
+                        'platform_id' => $branch->platform_id,
+                        'name' => $definition['name'],
+                        'slug' => $definition['slug'],
+                        'status' => Branch::STATUS_ACTIVE,
+                        'approved_at' => $target->approved_at ?? now(),
+                    ])->save();
+
+                    $this->ensureMembership($target, $actor, Roles::ADMIN);
+                    $targets[$target->id] = $target;
+                }
+            } else {
+                $targets[$branch->id] = $branch;
+            }
+
+            foreach ($targets as $target) {
+                $this->seedBranch($target, $actor);
+            }
         });
 
         return response()->json([
             'success' => true,
-            'message' => 'Demo data seeded successfully across the system.',
+            'message' => 'Demo data seeded successfully for '.count($targets).' branch(es).',
         ]);
+    }
+
+    private function seedBranch(Branch $branch, User $actor): void
+    {
+        $this->ensureMembership($branch, $actor, Roles::ADMIN);
+
+        $destination = $this->ensureDestinationBranch($branch, $actor);
+        $users = $this->seedUsers($branch);
+        $products = $this->seedCatalogue($branch, $actor, $destination);
+        $accounts = $this->seedFinance($branch, $actor);
+        [$customers, $sales] = $this->seedSales($branch, $actor, $products, $accounts, $users);
+        $this->seedReservations($branch, $actor, $products['OF-210']);
+        $this->seedWorkshop($branch, $actor, $customers['RUSAPE-FLEET'], $products['OF-210'], $sales[0]);
+        $this->seedStockOperations($branch, $actor, $destination, $products);
+        $this->seedHrAndPayroll($branch, $actor, $users['manager']);
+        $this->seedLoyaltyAndContent($branch, $actor, $customers['MAYA']);
+        $this->seedTasks($branch, $actor, $users['manager']);
     }
 
     public function wipe(): JsonResponse
@@ -269,8 +313,8 @@ class DemoController extends Controller
                 'name' => 'Brake Pad Set',
                 'slug' => 'brake-pad-set',
                 'description' => 'Quiet, dependable brake pads for daily commutes and fleet vehicles.',
-                'image' => '/images/products/brake-pad-set.svg',
-                'image_alt' => 'Illustration of a brake pad set',
+                'image' => '/images/products/brake-pad-set.jpg',
+                'image_alt' => 'Photo of a brake pad set',
                 'category' => 'Brakes',
                 'unit' => $set,
                 'price' => 4500,
@@ -281,8 +325,8 @@ class DemoController extends Controller
                 'name' => 'Oil Filter',
                 'slug' => 'oil-filter',
                 'description' => 'High-filtration oil filter that protects engines between service intervals.',
-                'image' => '/images/products/oil-filter.svg',
-                'image_alt' => 'Illustration of an oil filter',
+                'image' => '/images/products/oil-filter.jpg',
+                'image_alt' => 'Photo of an oil filter',
                 'category' => 'Filters',
                 'unit' => $piece,
                 'price' => 1250,
@@ -293,8 +337,8 @@ class DemoController extends Controller
                 'name' => 'Spark Plugs (4 Pack)',
                 'slug' => 'spark-plugs-4-pack',
                 'description' => 'Four reliable spark plugs for smooth starting and efficient combustion.',
-                'image' => '/images/products/spark-plugs-4-pack.svg',
-                'image_alt' => 'Illustration of four spark plugs',
+                'image' => '/images/products/spark-plugs-4-pack.jpg',
+                'image_alt' => 'Photo of four spark plugs',
                 'category' => 'Electrical',
                 'unit' => $set,
                 'price' => 2400,
@@ -305,8 +349,8 @@ class DemoController extends Controller
                 'name' => 'Air Filter',
                 'slug' => 'air-filter',
                 'description' => 'Clean airflow filter that helps maintain engine performance and economy.',
-                'image' => '/images/products/air-filter.svg',
-                'image_alt' => 'Illustration of an air filter',
+                'image' => '/images/products/air-filter.jpg',
+                'image_alt' => 'Photo of an air filter',
                 'category' => 'Filters',
                 'unit' => $piece,
                 'price' => 1800,
@@ -317,8 +361,8 @@ class DemoController extends Controller
                 'name' => 'Shock Absorber',
                 'slug' => 'shock-absorber',
                 'description' => 'Durable front shock absorber for stable handling on rough roads.',
-                'image' => '/images/products/shock-absorber.svg',
-                'image_alt' => 'Illustration of a shock absorber',
+                'image' => '/images/products/shock-absorber.jpg',
+                'image_alt' => 'Photo of a shock absorber',
                 'category' => 'Suspension',
                 'unit' => $piece,
                 'price' => 8500,

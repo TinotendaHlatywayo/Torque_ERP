@@ -138,6 +138,20 @@ class CmsSiteContent extends Model
         return ['logo_alt', 'home_hero_image_alt', 'about_image_alt', 'services_image_alt', 'contact_image_alt'];
     }
 
+    public static function imageDefaults(): array
+    {
+        $defaults = self::defaults();
+
+        return [
+            'logo_media_id' => ['url' => '/tms_logo_transparent.png', 'alt' => (string) $defaults['logo_alt']],
+            'favicon_media_id' => ['url' => '/tms_logo_transparent.png', 'alt' => (string) $defaults['logo_alt']],
+            'home_hero_media_id' => ['url' => '/images/site/home-hero.jpg', 'alt' => (string) $defaults['home_hero_image_alt']],
+            'about_media_id' => ['url' => '/images/site/about.jpg', 'alt' => (string) $defaults['about_image_alt']],
+            'services_media_id' => ['url' => '/images/site/services.jpg', 'alt' => (string) $defaults['services_image_alt']],
+            'contact_media_id' => ['url' => '/images/site/contact.jpg', 'alt' => (string) $defaults['contact_image_alt']],
+        ];
+    }
+
     public function draftContent(): array
     {
         return array_replace(self::defaults(), $this->content ?? []);

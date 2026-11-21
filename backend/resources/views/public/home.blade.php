@@ -7,7 +7,7 @@
     <meta name="description" content="Find the right motor spares with Taziva Motor Spares in Rusape. TorqueERP keeps our catalogue and service moving.">
     <meta name="theme-color" content="#078878">
     <link rel="canonical" href="{{ rtrim(config('app.url'), '/') }}/">
-    <link rel="icon" type="image/png" href="{{ asset('tms_logo_transparent.png') }}">
+    <link rel="icon" href="{{ $siteImages['favicon_media_id']['url'] }}">
     <link rel="stylesheet" href="{{ asset('css/public-site.css') }}">
     <title>Taziva Motor Spares | TorqueERP</title>
     <meta property="og:type" content="website">
@@ -37,7 +37,7 @@
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="site-header">
     <a class="brand" href="{{ route('public.home') }}" aria-label="Taziva Motor Spares home">
-        <img class="brand-logo" src="{{ asset('tms_logo_transparent.png') }}" alt="TMS home">
+        <img class="brand-logo" src="{{ $siteImages['logo_media_id']['url'] }}" alt="{{ $siteImages['logo_media_id']['alt'] }}">
     </a>
     <nav aria-label="Main navigation">
         <a href="#why-taziva">Why Taziva</a>
@@ -69,6 +69,6 @@
         <div class="intro-body"><p>Every vehicle depends on the details. We’re building a more helpful way to find the parts you need, backed by the people and experience of Taziva Motor Spares.</p><a href="{{ rtrim(config('app.frontend_url'), '/') }}/login" class="text-link">Team member? Sign in <span aria-hidden="true">↗</span></a></div>
     </section>
 </main>
-<footer class="site-footer"><a class="brand brand-small" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ asset('tms_logo_transparent.png') }}" alt="TMS home"></a><p>Locally focused. Road ready.</p><span>© {{ date('Y') }} Taziva Motor Spares</span></footer>
+<footer class="site-footer"><a class="brand brand-small" href="{{ route('public.home') }}"><img class="brand-logo" src="{{ $siteImages['logo_media_id']['url'] }}" alt="{{ $siteImages['logo_media_id']['alt'] }}"></a><p>Locally focused. Road ready.</p><span>© {{ date('Y') }} Taziva Motor Spares</span></footer>
 </body>
 </html>

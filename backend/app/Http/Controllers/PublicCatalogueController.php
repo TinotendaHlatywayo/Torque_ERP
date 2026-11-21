@@ -34,6 +34,7 @@ class PublicCatalogueController extends Controller
             'branch' => $branch,
             'products' => $products,
             'categories' => $categories,
+            'siteImages' => $this->siteImages(),
             'query' => $query,
             'category' => null,
             'title' => $query === '' ? 'Motor Spares Catalogue' : 'Search Results',
@@ -66,6 +67,7 @@ class PublicCatalogueController extends Controller
                 ->whereHas('products', fn ($builder) => $builder->where('is_active', true)->where('is_public', true))->orderBy('name')->get(['name', 'slug']),
             'query' => $query,
             'category' => $category,
+            'siteImages' => $this->siteImages(),
             'title' => $category->name,
             'description' => Str::limit($query === ''
                 ? 'Browse '.$category->name.' at Taziva Motor Spares in Rusape. Contact the local team to confirm current availability.'
@@ -89,8 +91,9 @@ class PublicCatalogueController extends Controller
         $price = Money::format($product->selling_price_minor, $product->currency_code);
         $canonical = rtrim(config('app.url'), '/').'/shop/'.$product->public_slug;
         $description = Str::limit($product->public_description, 155);
+        $siteImages = $this->siteImages();
 
-        return view('public.product', compact('branch', 'product', 'related', 'price', 'canonical', 'description'));
+        return view('public.product', compact('branch', 'product', 'related', 'price', 'canonical', 'description', 'siteImages'));
     }
 
     private function branch(): Branch

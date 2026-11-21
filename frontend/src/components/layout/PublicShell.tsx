@@ -79,7 +79,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
       link.rel = 'icon'
       document.head.appendChild(link)
     }
-    link.type = 'image/png'
+    link.removeAttribute('type')
     link.href = favicon
   }, [siteImages?.favicon_media_id?.url])
 

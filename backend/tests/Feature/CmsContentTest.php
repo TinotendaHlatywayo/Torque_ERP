@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\CmsMedia;
 use App\Models\CmsPageVersion;
+use App\Models\CmsSiteContent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -165,5 +166,53 @@ class CmsContentTest extends TestCase
         $media = CmsMedia::findOrFail($mediaId);
         $variant = str_replace('_', '-', (string) $media->preferred_variant);
         $this->get("/api/media/{$mediaId}/{$variant}")->assertOk();
+    }
+
+    public function test_public_site_exposes_default_images_for_every_shared_slot(): void
+    {
+        $response = $this->getJson('/api/public/site')->assertOk();
+
+        foreach (CmsSiteContent::imageDefaults() as $key => $default) {
+            $response->assertJsonPath("content.images.$key.url", url($default['url']))
+                ->assertJsonPath("content.images.$key.alt", $default['alt']);
+        }
+    }
+
+    public function test_platform_admin_can_replace_all_shared_site_images_and_descriptions(): void
+    {
+        $upload = $this->asAdmin()->postJson('/api/platform/cms/media', [
+            'image' => UploadedFile::fake()->image('shared-site-image.png', 800, 600),
+        ])->assertCreated();
+        $mediaId = $upload->json('data.id');
+
+        $alts = [
+            'logo_alt' => 'TMS branded logo',
+            'home_hero_image_alt' => 'New TMS hero photo',
+            'about_image_alt' => 'New TMS workshop photo',
+            'services_image_alt' => 'New TMS service photo',
+            'contact_image_alt' => 'New TMS contact photo',
+        ];
+        $content = collect(CmsSiteContent::mediaKeys())->mapWithKeys(fn (string $key): array => [$key => $mediaId])->all();
+
+        $this->asAdmin()->putJson('/api/platform/cms/site-content', ['content' => array_merge($content, $alts)])->assertOk();
+        $this->asAdmin()->postJson('/api/platform/cms/site-content/publish')->assertOk();
+
+        $media = CmsMedia::findOrFail($mediaId);
+        $variant = str_replace('_', '-', (string) $media->preferred_variant);
+        $expectedUrl = route('public.media', [$mediaId, $variant]);
+        $expectedAlts = [
+            'logo_media_id' => $alts['logo_alt'],
+            'favicon_media_id' => $alts['logo_alt'],
+            'home_hero_media_id' => $alts['home_hero_image_alt'],
+            'about_media_id' => $alts['about_image_alt'],
+            'services_media_id' => $alts['services_image_alt'],
+            'contact_media_id' => $alts['contact_image_alt'],
+        ];
+        $response = $this->getJson('/api/public/site')->assertOk();
+
+        foreach (CmsSiteContent::mediaKeys() as $key) {
+            $response->assertJsonPath("content.images.$key.url", $expectedUrl)
+                ->assertJsonPath("content.images.$key.alt", $expectedAlts[$key]);
+        }
     }
 }

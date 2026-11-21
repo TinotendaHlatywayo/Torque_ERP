@@ -7,7 +7,6 @@ use App\Models\Branch;
 use App\Models\Category;
 use App\Models\CmsMedia;
 use App\Models\CmsPageVersion;
-use App\Models\CmsSiteContent;
 use App\Models\Product;
 use App\Models\Reservation;
 use App\Models\User;
@@ -15,6 +14,7 @@ use App\Support\Decimal;
 use App\Support\Money;
 use App\Support\PaynowGateway;
 use App\Support\ReservationService;
+use App\Support\SiteContent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,6 +28,7 @@ class PublicSiteController extends Controller
     public function __construct(
         private readonly ReservationService $reservations,
         private readonly PaynowGateway $paynow,
+        private readonly SiteContent $siteContent,
     ) {}
 
     public function site(): JsonResponse
@@ -281,32 +282,9 @@ class PublicSiteController extends Controller
     /** @return array<int, array{name: string, slug: string}> */
     private function siteContent(): array
     {
-        $site = CmsSiteContent::query()->where('key', 'default')->first();
-        $content = $site ? $site->publicContent() : CmsSiteContent::defaults();
-        $images = [];
+        $content = $this->siteContent->content();
 
-        foreach (CmsSiteContent::mediaKeys() as $key) {
-            $media = isset($content[$key]) && $content[$key] ? CmsMedia::query()->find($content[$key]) : null;
-            $images[$key] = $media ? [
-                'url' => $this->imageUrl($media),
-                'alt' => $content[$this->imageAltKey($key)] ?? '',
-            ] : null;
-        }
-
-        return ['text' => $content, 'images' => $images];
-    }
-
-    private function imageAltKey(string $mediaKey): string
-    {
-        return match ($mediaKey) {
-            'favicon_media_id' => 'logo_alt',
-            'logo_media_id' => 'logo_alt',
-            'home_hero_media_id' => 'home_hero_image_alt',
-            'about_media_id' => 'about_image_alt',
-            'services_media_id' => 'services_image_alt',
-            'contact_media_id' => 'contact_image_alt',
-            default => 'logo_alt',
-        };
+        return ['text' => $content, 'images' => $this->siteContent->images($content)];
     }
 
     private function categories(?Branch $branch): array
