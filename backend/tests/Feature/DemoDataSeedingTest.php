@@ -28,12 +28,14 @@ class DemoDataSeedingTest extends TestCase
 
         $branch = Branch::where('code', 'TMS-01')->firstOrFail();
         $mutare = Branch::where('code', 'TMS-02')->firstOrFail();
+        $gweru = Branch::where('code', 'TMS-03')->firstOrFail();
 
-        $this->assertSame('TMS Mutare Branch', $mutare->name);
+        $this->assertSame('TMS Mutare Main Branch', $mutare->name);
+        $this->assertSame('TMS Gweru Main Branch', $gweru->name);
         $this->assertSame(5, Product::where('branch_id', $branch->id)->count());
         $this->assertSame(5, StockLevel::where('branch_id', $branch->id)->count());
-        $this->assertSame(5, Product::where('branch_id', $mutare->id)->count());
-        $this->assertSame(5, StockLevel::where('branch_id', $mutare->id)->count());
+        $this->assertSame(0, Product::where('branch_id', $mutare->id)->count());
+        $this->assertSame(0, StockLevel::where('branch_id', $mutare->id)->count());
 
         $this->getJson('/api/public/site')->assertOk()
             ->assertJsonPath('catalogue_ready', true)
@@ -53,5 +55,6 @@ class DemoDataSeedingTest extends TestCase
 
         $this->assertContains('TMS-01', array_column($me['branches'], 'code'));
         $this->assertContains('TMS-02', array_column($me['branches'], 'code'));
+        $this->assertContains('TMS-03', array_column($me['branches'], 'code'));
     }
 }

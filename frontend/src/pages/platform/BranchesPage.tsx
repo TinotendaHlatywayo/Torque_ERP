@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { EmptyState, ErrorState, LoadingState } from "@/components/feedback/StateComponents"
 import { useMe } from "@/hooks/useMe"
+import api from "@/lib/api"
 import { apiErrorMessage } from "@/lib/apiErrors"
 import { storeBranchId } from "@/lib/branch"
 import {
@@ -64,6 +65,7 @@ export default function BranchesPage() {
   const isAdmin = Boolean(meQuery.data?.user.is_platform_admin)
   const canViewBranches = isAdmin || (meQuery.data?.platform_permissions.includes("platform.branches.view") ?? false)
   const canManage = isAdmin || (meQuery.data?.platform_permissions.includes("platform.branches.manage") ?? false)
+  const canManageDemoData = isAdmin || (meQuery.data?.platform_permissions.includes("platform.settings.manage") ?? false)
   const canViewReports = isAdmin || (meQuery.data?.platform_permissions.includes("platform.reports.view") ?? false)
 
   const [form, setForm] = useState({ name: "", code: "", slug: "", timezone: "Africa/Harare", currency_code: "USD" })
@@ -148,6 +150,16 @@ export default function BranchesPage() {
       navigate("/app", { replace: true })
     },
     onError: (err: unknown) => setError(apiErrorMessage(err, "Could not open that branch workspace.")),
+  })
+
+  const seedDemoMutation = useMutation({
+    mutationFn: ({ branchId }: { branchId: string; branchName: string }) => api.post(`/api/branches/${branchId}/demo/seed`),
+    onSuccess: (response, variables) => {
+      setError("")
+      setNotice(response.data.message || `Demo data seeded for ${variables.branchName}.`)
+      refresh()
+    },
+    onError: (err: unknown) => setError(apiErrorMessage(err, "Could not seed demo data for that branch.")),
   })
 
   const branches = useMemo(() => branchesQuery.data ?? [], [branchesQuery.data])
@@ -531,6 +543,16 @@ export default function BranchesPage() {
                                 )}
                                 {canManage && branch.status !== "archived" && (
                                   <Button size="sm" variant="ghost" disabled={statusMutation.isPending} onClick={() => runStatusAction(branch, "archive")}>Archive</Button>
+                                )}
+                                {canManageDemoData && branch.status === "active" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={seedDemoMutation.isPending}
+                                    onClick={() => seedDemoMutation.mutate({ branchId: branch.id, branchName: branch.name })}
+                                  >
+                                    Seed demo data
+                                  </Button>
                                 )}
                                 {isAdmin && branch.status === "active" && (
                                   <Button

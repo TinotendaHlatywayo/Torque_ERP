@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { ErrorState, LoadingState } from '@/components/feedback/StateComponents'
@@ -8,13 +8,27 @@ import { ProductCard } from '@/components/public/ProductCard'
 import { Reveal } from '@/components/ui/Reveal'
 import { ArrowRightIcon, CheckIcon, ClockIcon, SearchIcon, ShieldIcon, TruckIcon, WrenchIcon } from '@/components/public/icons'
 import { apiErrorMessage } from '@/lib/apiErrors'
-import { getPublicSite } from '@/lib/publicApi'
+import { getPublicSite, type PublicSiteImage } from '@/lib/publicApi'
+
+const heroSlideKeys = [
+  'home_hero_media_id',
+  'home_hero_slide_2_media_id',
+  'home_hero_slide_3_media_id',
+  'home_hero_slide_4_media_id',
+  'home_hero_slide_5_media_id',
+  'home_hero_slide_6_media_id',
+  'home_hero_slide_7_media_id',
+  'home_hero_slide_8_media_id',
+  'home_hero_slide_9_media_id',
+  'home_hero_slide_10_media_id',
+]
 
 const linkClass =
   'inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-bold transition-colors duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2'
 
 export default function HomePage() {
   const [search, setSearch] = useState('')
+  const [activeSlide, setActiveSlide] = useState(0)
   const navigate = useNavigate()
   const siteQuery = useQuery({
     queryKey: ['public', 'site'],
@@ -24,7 +38,19 @@ export default function HomePage() {
 
   const content = siteQuery.data?.content
   const text = (key: string, fallback: string) => content?.text[key] || fallback
-  const heroImage = content?.images.home_hero_media_id
+  const heroSlides = heroSlideKeys
+    .map((key) => content?.images[key])
+    .filter((slide): slide is PublicSiteImage => Boolean(slide?.url))
+  const currentSlideIndex = heroSlides.length > 0 ? activeSlide % heroSlides.length : -1
+
+  useEffect(() => {
+    if (heroSlides.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return
+    }
+
+    const timer = window.setInterval(() => setActiveSlide((current) => current + 1), 5500)
+    return () => window.clearInterval(timer)
+  }, [heroSlides.length])
 
   usePageMeta(
     text('home_meta_title', 'Taziva Motor Spares | Motor Spares & Workshop Support'),
@@ -55,6 +81,20 @@ export default function HomePage() {
         <>
           <section className="relative overflow-hidden bg-brand-ink text-white">
             <div className="grid-texture absolute inset-0 opacity-20" aria-hidden="true" />
+            {heroSlides.map((slide, index) => {
+              const isCurrent = index === currentSlideIndex
+              return (
+                <img
+                  key={`${slide.url}-${index}`}
+                  src={slide.url}
+                  alt={isCurrent ? slide.alt : ''}
+                  aria-hidden={!isCurrent}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-out motion-reduce:transition-none ${isCurrent ? 'opacity-100' : 'opacity-0'}`}
+                />
+              )
+            })}
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-ink/95 via-brand-ink/80 to-brand-ink/50" aria-hidden="true" />
             <div className="animate-glow pointer-events-none absolute -bottom-48 left-1/4 h-96 w-96 rounded-full bg-brand-green/30 blur-3xl" aria-hidden="true" />
             <div className="relative mx-auto grid w-full max-w-7xl gap-10 px-5 py-14 sm:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:px-8 lg:py-20">
               <div className="animate-fade-up">
@@ -82,7 +122,6 @@ export default function HomePage() {
               </div>
 
               <div className="animate-fade-up rounded-2xl border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur sm:p-6">
-                {heroImage && <img src={heroImage.url} alt={heroImage.alt} className="mb-5 h-32 w-full rounded-xl border border-white/20 object-cover" />}
                 <p className="text-sm font-black text-white">{text('home_search_title', 'What are you looking for?')}</p>
                 <p className="mt-1 text-xs text-brand-surface/70">{text('home_search_subtitle', 'Search the live TMS branch catalogue.')}</p>
                 <form role="search" onSubmit={submitSearch} className="mt-5">
@@ -121,6 +160,38 @@ export default function HomePage() {
                 )}
               </div>
             </div>
+            {heroSlides.length > 1 && (
+              <div className="absolute inset-x-0 bottom-2 z-20 flex items-center justify-center gap-2" aria-label="Hero image slideshow">
+                <button
+                  type="button"
+                  aria-label="Previous hero image"
+                  onClick={() => setActiveSlide((current) => (current - 1 + heroSlides.length) % heroSlides.length)}
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-brand-ink/50 text-xl text-white backdrop-blur hover:bg-brand-ink/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-mint"
+                >
+                  ‹
+                </button>
+                {heroSlides.map((slide, index) => (
+                  <button
+                    key={`${slide.url}-dot-${index}`}
+                    type="button"
+                    aria-label={`Show hero image ${index + 1}: ${slide.alt}`}
+                    aria-current={index === currentSlideIndex ? 'true' : undefined}
+                    onClick={() => setActiveSlide(index)}
+                    className="flex h-11 w-7 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-mint"
+                  >
+                    <span className={`h-2 w-2 rounded-full transition-all duration-300 motion-reduce:transition-none ${index === currentSlideIndex ? 'w-6 bg-brand-mint' : 'bg-white/60'}`} />
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  aria-label="Next hero image"
+                  onClick={() => setActiveSlide((current) => (current + 1) % heroSlides.length)}
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-brand-ink/50 text-xl text-white backdrop-blur hover:bg-brand-ink/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-mint"
+                >
+                  ›
+                </button>
+              </div>
+            )}
           </section>
 
           {!siteQuery.data.catalogue_ready && (

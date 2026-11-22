@@ -8,7 +8,6 @@ use App\Models\Platform;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 class DatabaseSeeder extends Seeder
@@ -23,18 +22,9 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $branches = [
-            $this->ensureBranch($platform, [
-                'code' => 'TMS-01',
-                'name' => 'TMS Rusape Main Branch',
-                'slug' => 'tms-rusape-main',
-            ]),
-            $this->ensureBranch($platform, [
-                'code' => 'TMS-02',
-                'name' => 'TMS Mutare Branch',
-                'slug' => 'tms-mutare-main',
-            ]),
-        ];
+        $branches = collect(config('seeding.branches'))
+            ->map(fn (array $definition): Branch => $this->ensureBranch($platform, $definition))
+            ->all();
 
         $email = config('seeding.admin_email');
         $password = config('seeding.admin_password');
@@ -92,15 +82,28 @@ class DatabaseSeeder extends Seeder
 
     private function ensureBranchAdministrator(Branch $branch): void
     {
+        $credentials = config('seeding.branch_admins.'.$branch->slug);
+
+        if (! is_array($credentials)) {
+            return;
+        }
+
         $target = User::firstOrCreate(
-            ['email' => 'branch-admin-'.$branch->slug.'@tms.local'],
+            ['email' => $credentials['email']],
             [
                 'name' => 'Branch Administrator - '.$branch->name,
-                'password' => Hash::make(Str::password(32)),
+                'password' => Hash::make($credentials['password']),
                 'is_active' => true,
                 'is_platform_admin' => false,
             ]
         );
+
+        $target->forceFill([
+            'name' => 'Branch Administrator - '.$branch->name,
+            'password' => Hash::make($credentials['password']),
+            'is_active' => true,
+            'is_platform_admin' => false,
+        ])->save();
 
         $this->ensureMembership($branch, $target);
     }

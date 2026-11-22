@@ -9,3 +9,14 @@ home-hero.jpg  - derived from brake-pad-set.jpg
 about.jpg      - derived from shock-absorber.jpg
 services.jpg   - derived from oil-filter.jpg
 contact.jpg    - derived from spark-plugs-4-pack.jpg
+
+hero-slide-01.jpg - derived from brake-pad-set.jpg
+hero-slide-02.jpg - derived from air-filter.jpg
+hero-slide-03.jpg - derived from oil-filter.jpg
+hero-slide-04.jpg - derived from spark-plugs-4-pack.jpg
+hero-slide-05.jpg - derived from shock-absorber.jpg
+hero-slide-06.jpg - original branded alternator illustration
+hero-slide-07.jpg - original branded battery illustration
+hero-slide-08.jpg - original branded brake disc illustration
+hero-slide-09.jpg - original branded fuel filter illustration
+hero-slide-10.jpg - original branded radiator illustration

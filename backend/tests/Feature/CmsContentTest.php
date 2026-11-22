@@ -185,13 +185,9 @@ class CmsContentTest extends TestCase
         ])->assertCreated();
         $mediaId = $upload->json('data.id');
 
-        $alts = [
-            'logo_alt' => 'TMS branded logo',
-            'home_hero_image_alt' => 'New TMS hero photo',
-            'about_image_alt' => 'New TMS workshop photo',
-            'services_image_alt' => 'New TMS service photo',
-            'contact_image_alt' => 'New TMS contact photo',
-        ];
+        $alts = collect(CmsSiteContent::imageAltKeys())
+            ->mapWithKeys(fn (string $key): array => [$key => 'Managed '.$key])
+            ->all();
         $content = collect(CmsSiteContent::mediaKeys())->mapWithKeys(fn (string $key): array => [$key => $mediaId])->all();
 
         $this->asAdmin()->putJson('/api/platform/cms/site-content', ['content' => array_merge($content, $alts)])->assertOk();
@@ -200,19 +196,11 @@ class CmsContentTest extends TestCase
         $media = CmsMedia::findOrFail($mediaId);
         $variant = str_replace('_', '-', (string) $media->preferred_variant);
         $expectedUrl = route('public.media', [$mediaId, $variant]);
-        $expectedAlts = [
-            'logo_media_id' => $alts['logo_alt'],
-            'favicon_media_id' => $alts['logo_alt'],
-            'home_hero_media_id' => $alts['home_hero_image_alt'],
-            'about_media_id' => $alts['about_image_alt'],
-            'services_media_id' => $alts['services_image_alt'],
-            'contact_media_id' => $alts['contact_image_alt'],
-        ];
         $response = $this->getJson('/api/public/site')->assertOk();
 
         foreach (CmsSiteContent::mediaKeys() as $key) {
             $response->assertJsonPath("content.images.$key.url", $expectedUrl)
-                ->assertJsonPath("content.images.$key.alt", $expectedAlts[$key]);
+                ->assertJsonPath("content.images.$key.alt", $alts[CmsSiteContent::imageAltKey($key)]);
         }
     }
 }

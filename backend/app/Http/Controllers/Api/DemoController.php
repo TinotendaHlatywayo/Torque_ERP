@@ -74,57 +74,18 @@ class DemoController extends Controller
 
     private const STOCKTAKE_REASON = 'Demo cycle count';
 
-    private const PRIMARY_BRANCHES = [
-        ['code' => 'TMS-01', 'name' => 'TMS Rusape Main Branch', 'slug' => 'tms-rusape-main'],
-        ['code' => 'TMS-02', 'name' => 'TMS Mutare Branch', 'slug' => 'tms-mutare-main'],
-    ];
-
     public function seed(): JsonResponse
     {
         $branch = $this->resolveBranch();
-        $targets = [];
 
-        DB::transaction(function () use ($branch, &$targets): void {
+        DB::transaction(function () use ($branch): void {
             $actor = $this->resolveActor($branch, true);
-
-            if (in_array($branch->code, array_column(self::PRIMARY_BRANCHES, 'code'), true)) {
-                foreach (self::PRIMARY_BRANCHES as $definition) {
-                    $target = Branch::firstOrCreate(
-                        ['code' => $definition['code']],
-                        [
-                            'platform_id' => $branch->platform_id,
-                            'name' => $definition['name'],
-                            'slug' => $definition['slug'],
-                            'timezone' => $branch->timezone,
-                            'currency_code' => $branch->currency_code,
-                            'status' => Branch::STATUS_ACTIVE,
-                            'approved_at' => now(),
-                        ]
-                    );
-
-                    $target->forceFill([
-                        'platform_id' => $branch->platform_id,
-                        'name' => $definition['name'],
-                        'slug' => $definition['slug'],
-                        'status' => Branch::STATUS_ACTIVE,
-                        'approved_at' => $target->approved_at ?? now(),
-                    ])->save();
-
-                    $this->ensureMembership($target, $actor, Roles::ADMIN);
-                    $targets[$target->id] = $target;
-                }
-            } else {
-                $targets[$branch->id] = $branch;
-            }
-
-            foreach ($targets as $target) {
-                $this->seedBranch($target, $actor);
-            }
+            $this->seedBranch($branch, $actor);
         });
 
         return response()->json([
             'success' => true,
-            'message' => 'Demo data seeded successfully for '.count($targets).' branch(es).',
+            'message' => 'Demo data seeded successfully for '.$branch->name.'.',
         ]);
     }
 
@@ -201,12 +162,15 @@ class DemoController extends Controller
     {
         $code = 'DEMO-DST-'.$branch->code;
         $slug = 'demo-dst-'.$branch->slug;
+        $name = str_ends_with($branch->name, ' Demo Destination')
+            ? $branch->name
+            : $branch->name.' Demo Destination';
 
         $destination = Branch::withTrashed()->firstOrCreate(
             ['code' => $code],
             [
                 'platform_id' => $branch->platform_id,
-                'name' => $branch->name.' Demo Destination',
+                'name' => $name,
                 'slug' => $slug,
                 'status' => Branch::STATUS_ACTIVE,
                 'timezone' => $branch->timezone,
@@ -222,6 +186,7 @@ class DemoController extends Controller
 
         $destination->update([
             'platform_id' => $branch->platform_id,
+            'name' => $name,
             'slug' => $slug,
             'status' => Branch::STATUS_ACTIVE,
             'timezone' => $branch->timezone,

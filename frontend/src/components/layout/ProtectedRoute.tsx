@@ -22,7 +22,9 @@ export function ProtectedRoute({ children, platformOnly = false, platformPermiss
     return <Navigate to={`/login?redirect=${redirect}`} replace />
   }
 
-  if (data.impersonation.active) {
+  const inBranchWorkspace = location.pathname === "/app" || location.pathname.startsWith("/app/")
+
+  if (data.impersonation?.active && ! inBranchWorkspace) {
     return <Navigate to="/app" replace />
   }
 

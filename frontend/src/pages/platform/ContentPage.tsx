@@ -30,6 +30,20 @@ type SiteImageField = {
 
 type SitePageGroup = { label: string; fields: string[]; images: SiteImageField[] }
 
+const heroSlideParts = ["brake pads", "an air filter", "an oil filter", "spark plugs", "a shock absorber", "an alternator", "a car battery", "a brake disc", "a fuel filter", "a radiator"]
+
+const heroSlideImages: SiteImageField[] = heroSlideParts.map((part, index) => {
+  const slide = index + 1
+  return {
+    key: slide === 1 ? "home_hero_media_id" : `home_hero_slide_${slide}_media_id`,
+    label: `Home hero slide ${slide} - ${part}`,
+    altKey: slide === 1 ? "home_hero_image_alt" : `home_hero_slide_${slide}_image_alt`,
+    defaultUrl: `/images/site/hero-slide-${String(slide).padStart(2, "0")}.jpg`,
+    defaultAlt: `Taziva Motor Spares ${part}`,
+    fit: "cover",
+  }
+})
+
 const sitePageGroups: SitePageGroup[] = [
   {
     label: "Global",
@@ -42,7 +56,7 @@ const sitePageGroups: SitePageGroup[] = [
   {
     label: "Home",
     fields: ["home_meta_title", "home_meta_description", "home_eyebrow", "home_heading", "home_heading_accent", "home_intro", "home_search_title", "home_search_subtitle", "home_search_placeholder", "home_shop_button", "home_account_button", "home_benefit_one_title", "home_benefit_one_body", "home_benefit_two_title", "home_benefit_two_body", "home_benefit_three_title", "home_benefit_three_body", "home_browse_eyebrow", "home_browse_heading", "home_featured_eyebrow", "home_featured_heading"],
-    images: [{ key: "home_hero_media_id", label: "Home hero image", altKey: "home_hero_image_alt", defaultUrl: "/images/site/home-hero.jpg", defaultAlt: "TMS motor spares collection", fit: "cover" }],
+    images: heroSlideImages,
   },
   {
     label: "About",

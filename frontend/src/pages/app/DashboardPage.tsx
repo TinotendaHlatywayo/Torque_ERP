@@ -73,7 +73,7 @@ export default function DashboardPage() {
     setActionMessage(null)
     try {
       const response = await api.post(`/api/branches/${branchId}/demo/seed`)
-      setActionMessage({ type: 'success', text: response.data.message || 'Demo data successfully seeded across the system.' })
+      setActionMessage({ type: 'success', text: response.data.message || 'Demo data successfully seeded for this branch.' })
       await invalidateBranchData()
     } catch (error: unknown) {
       setActionMessage({ type: 'error', text: apiErrorMessage(error) })

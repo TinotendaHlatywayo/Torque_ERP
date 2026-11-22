@@ -34,7 +34,7 @@ class DemoBranchScopingTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_seeded_platform_admin_can_seed_the_route_branch(): void
+    public function test_seeded_platform_admin_only_seeds_the_route_branch(): void
     {
         config([
             'seeding.admin_email' => 'admin@example.test',
@@ -54,9 +54,9 @@ class DemoBranchScopingTest extends TestCase
         $mutare = Branch::where('code', 'TMS-02')->firstOrFail();
 
         $this->assertSame(5, Product::where('branch_id', $branch->id)->count());
-        $this->assertSame(5, Product::where('branch_id', $mutare->id)->count());
+        $this->assertSame(0, Product::where('branch_id', $mutare->id)->count());
         $this->assertNotNull(Branch::where('code', 'DEMO-DST-TMS-01')->first());
-        $this->assertNotNull(Branch::where('code', 'DEMO-DST-TMS-02')->first());
+        $this->assertNull(Branch::where('code', 'DEMO-DST-TMS-02')->first());
     }
 
     public function test_wipe_only_affects_the_requested_branch(): void

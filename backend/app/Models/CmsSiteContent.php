@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class CmsSiteContent extends Model
 {
+    private const HERO_SLIDE_COUNT = 10;
+
     protected $fillable = [
         'key',
         'content',
@@ -26,7 +28,7 @@ class CmsSiteContent extends Model
 
     public static function defaults(): array
     {
-        return [
+        $defaults = [
             'brand_name' => 'Taziva Motor Spares',
             'logo_alt' => 'Taziva Motor Spares',
             'header_note' => 'Taziva Motor Spares · Genuine parts from our Rusape branch',
@@ -121,35 +123,81 @@ class CmsSiteContent extends Model
             'about_media_id' => null,
             'services_media_id' => null,
             'contact_media_id' => null,
-            'home_hero_image_alt' => 'TMS motor spares collection',
+            'home_hero_image_alt' => 'Brake pads ready for collection',
             'about_image_alt' => 'Taziva Motor Spares team and workshop',
             'services_image_alt' => 'Motor spares and workshop support',
             'contact_image_alt' => 'Contact Taziva Motor Spares',
         ];
+
+        $slideParts = ['brake pads', 'an air filter', 'an oil filter', 'spark plugs', 'a shock absorber', 'an alternator', 'a car battery', 'a brake disc', 'a fuel filter', 'a radiator'];
+
+        for ($slide = 2; $slide <= self::HERO_SLIDE_COUNT; $slide++) {
+            $defaults["home_hero_slide_{$slide}_media_id"] = null;
+            $defaults["home_hero_slide_{$slide}_image_alt"] = 'Photo of '.$slideParts[$slide - 2].' sold by Taziva Motor Spares';
+        }
+
+        return $defaults;
     }
 
     public static function mediaKeys(): array
     {
-        return ['logo_media_id', 'favicon_media_id', 'home_hero_media_id', 'about_media_id', 'services_media_id', 'contact_media_id'];
+        $keys = ['logo_media_id', 'favicon_media_id', 'home_hero_media_id', 'about_media_id', 'services_media_id', 'contact_media_id'];
+
+        for ($slide = 2; $slide <= self::HERO_SLIDE_COUNT; $slide++) {
+            $keys[] = "home_hero_slide_{$slide}_media_id";
+        }
+
+        return $keys;
     }
 
     public static function imageAltKeys(): array
     {
-        return ['logo_alt', 'home_hero_image_alt', 'about_image_alt', 'services_image_alt', 'contact_image_alt'];
+        $keys = ['logo_alt', 'home_hero_image_alt', 'about_image_alt', 'services_image_alt', 'contact_image_alt'];
+
+        for ($slide = 2; $slide <= self::HERO_SLIDE_COUNT; $slide++) {
+            $keys[] = "home_hero_slide_{$slide}_image_alt";
+        }
+
+        return $keys;
+    }
+
+    public static function imageAltKey(string $mediaKey): string
+    {
+        if (str_starts_with($mediaKey, 'home_hero_slide_') && str_ends_with($mediaKey, '_media_id')) {
+            return str_replace('_media_id', '_image_alt', $mediaKey);
+        }
+
+        return match ($mediaKey) {
+            'favicon_media_id', 'logo_media_id' => 'logo_alt',
+            'home_hero_media_id' => 'home_hero_image_alt',
+            'about_media_id' => 'about_image_alt',
+            'services_media_id' => 'services_image_alt',
+            'contact_media_id' => 'contact_image_alt',
+            default => 'logo_alt',
+        };
     }
 
     public static function imageDefaults(): array
     {
         $defaults = self::defaults();
-
-        return [
+        $images = [
             'logo_media_id' => ['url' => '/tms_logo_transparent.png', 'alt' => (string) $defaults['logo_alt']],
             'favicon_media_id' => ['url' => '/tms_logo_transparent.png', 'alt' => (string) $defaults['logo_alt']],
-            'home_hero_media_id' => ['url' => '/images/site/home-hero.jpg', 'alt' => (string) $defaults['home_hero_image_alt']],
             'about_media_id' => ['url' => '/images/site/about.jpg', 'alt' => (string) $defaults['about_image_alt']],
             'services_media_id' => ['url' => '/images/site/services.jpg', 'alt' => (string) $defaults['services_image_alt']],
             'contact_media_id' => ['url' => '/images/site/contact.jpg', 'alt' => (string) $defaults['contact_image_alt']],
         ];
+
+        for ($slide = 1; $slide <= self::HERO_SLIDE_COUNT; $slide++) {
+            $mediaKey = $slide === 1 ? 'home_hero_media_id' : "home_hero_slide_{$slide}_media_id";
+            $altKey = $slide === 1 ? 'home_hero_image_alt' : "home_hero_slide_{$slide}_image_alt";
+            $images[$mediaKey] = [
+                'url' => sprintf('/images/site/hero-slide-%02d.jpg', $slide),
+                'alt' => (string) $defaults[$altKey],
+            ];
+        }
+
+        return $images;
     }
 
     public function draftContent(): array

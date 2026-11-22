@@ -39,14 +39,7 @@ class SiteContent
 
     public function imageAltKey(string $mediaKey): string
     {
-        return match ($mediaKey) {
-            'favicon_media_id', 'logo_media_id' => 'logo_alt',
-            'home_hero_media_id' => 'home_hero_image_alt',
-            'about_media_id' => 'about_image_alt',
-            'services_media_id' => 'services_image_alt',
-            'contact_media_id' => 'contact_image_alt',
-            default => 'logo_alt',
-        };
+        return CmsSiteContent::imageAltKey($mediaKey);
     }
 
     private function imageUrl(CmsMedia $media): string

@@ -57,13 +57,15 @@ class PlatformBranchSessionController extends Controller
             ->first();
 
         if (! $target instanceof User) {
-            $email = 'branch-admin-'.$branch->slug.'@tms.local';
+            $credentials = config('seeding.branch_admins.'.$branch->slug);
+            $email = is_array($credentials) ? $credentials['email'] : 'branch-admin-'.$branch->slug.'@tms.local';
+            $password = is_array($credentials) ? $credentials['password'] : Str::password(32);
 
             $target = User::firstOrCreate(
                 ['email' => $email],
                 [
                     'name' => 'Branch Administrator - '.$branch->name,
-                    'password' => Hash::make(Str::password(32)),
+                    'password' => Hash::make($password),
                     'is_active' => true,
                     'is_platform_admin' => false,
                 ]
